@@ -11,7 +11,13 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Select,
 } from "@chakra-ui/react";
+import {
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+} from "../api/controllers/MenuItems";
 
 const FoodItemModal = ({
   isOpen,
@@ -19,21 +25,32 @@ const FoodItemModal = ({
   onSubmit,
   initialData = null,
   onDelete,
+  categories = [],
 }) => {
   const [foodItem, setFoodItem] = useState({
     name: "",
     description: "",
     price: "",
-    imageUrl: "",
+    imageFile: null, // Now storing the file instead of URL
+    category: "",
   });
 
-  // UseEffect to load the initial data into the form for editing
+  // Pre-fill the form if editing an existing item
   useEffect(() => {
     if (initialData) {
-      setFoodItem(initialData); // Pre-fill form with the selected food item for editing
+      setFoodItem({
+        ...initialData,
+        imageFile: null, // Reset file input when editing
+      });
     } else {
-      // Reset the form when switching to add mode
-      setFoodItem({ name: "", description: "", price: "", imageUrl: "" });
+      // Reset form when switching to add mode
+      setFoodItem({
+        name: "",
+        description: "",
+        price: "",
+        imageFile: null,
+        category: "",
+      });
     }
   }, [initialData]);
 
@@ -45,15 +62,52 @@ const FoodItemModal = ({
     }));
   };
 
-  const handleSubmit = () => {
-    onSubmit(foodItem); // Call onSubmit with the updated/new food item data
-    onClose(); // Close the modal
+  // Handle file change
+  const handleFileChange = (e) => {
+    setFoodItem((prevState) => ({
+      ...prevState,
+      imageFile: e.target.files[0], // Store the selected file
+    }));
   };
 
-  const handleDelete = () => {
-    if (onDelete) {
-      onDelete(foodItem.id); // Call onDelete with the item ID
-      onClose(); // Close the modal after deletion
+  // Handle form submission (create or update)
+  const handleSubmit = async () => {
+    const formData = new FormData();
+    formData.append("name", foodItem.name);
+    formData.append("description", foodItem.description);
+    formData.append("price", foodItem.price);
+    formData.append("category", foodItem.category);
+
+    if (foodItem.imageFile) {
+      formData.append("image", foodItem.imageFile); // Append image file if it exists
+    }
+
+    try {
+      if (initialData) {
+        // Update existing item
+        const updatedItem = await updateMenuItem(initialData.id, formData);
+        onSubmit(updatedItem); // Pass the updated item to the parent component
+      } else {
+        // Create new item
+        const newItem = await createMenuItem(formData);
+        onSubmit(newItem); // Pass the new item to the parent component
+      }
+      onClose(); // Close modal on success
+    } catch (error) {
+      console.error("Error saving menu item:", error);
+    }
+  };
+
+  // Handle deletion of the food item
+  const handleDelete = async () => {
+    try {
+      if (onDelete && initialData) {
+        await deleteMenuItem(initialData.id); // Delete item from backend
+        onDelete(initialData.id); // Pass the deleted item's ID to the parent component
+        onClose(); // Close modal after deletion
+      }
+    } catch (error) {
+      console.error("Error deleting menu item:", error);
     }
   };
 
@@ -99,13 +153,28 @@ const FoodItemModal = ({
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Image URL</FormLabel>
+            <FormLabel>Image File</FormLabel>
             <Input
-              name="imageUrl"
-              value={foodItem.imageUrl}
-              onChange={handleChange}
-              placeholder="Image URL"
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange} // Handle file input change
             />
+          </FormControl>
+
+          <FormControl mb={4}>
+            <FormLabel>Category</FormLabel>
+            <Select
+              placeholder="Select Category"
+              name="category"
+              value={foodItem.category}
+              onChange={handleChange}
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </Select>
           </FormControl>
         </ModalBody>
 

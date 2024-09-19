@@ -12,41 +12,53 @@ import {
   FormLabel,
   Input,
 } from "@chakra-ui/react";
+import toast from "react-hot-toast"; // Import toast for notifications
+import {
+  createRestaurant,
+  updateRestaurant,
+  deleteRestaurant,
+} from "../api/controllers/Restaurants"; // Import your controller functions
 
 const RestaurantModal = ({
-  isOpen,
-  onClose,
-  onSubmit,
-  onDelete,
-  initialData = null,
+  isOpen, // Controls if the modal is visible
+  onClose, // Function to close the modal
+  initialData = null, // Initial data for editing (if provided)
+  // refreshData, // Function to refresh the restaurant list after operations
 }) => {
-  // Form state
+  // Initial state for restaurant form fields
   const [restaurantDetails, setRestaurantDetails] = useState({
     name: "",
     location: "",
     opening_hours: "",
     contact_email: "",
     contact_phone: "",
-    logo_url: "",
+    logo: null, // To handle logo file uploads
   });
 
-  // Effect to load the initial data if editing
+  // Effect to load the initial data when editing an existing restaurant
   useEffect(() => {
     if (initialData) {
-      setRestaurantDetails(initialData); // Load the initial data into form if available
+      // Populate form with existing restaurant data
+      setRestaurantDetails({
+        ...initialData,
+        logo: null, // Reset the logo to avoid old URL being passed
+      });
     } else {
+      // Reset form for new restaurant creation
       setRestaurantDetails({
         name: "",
         location: "",
         opening_hours: "",
         contact_email: "",
         contact_phone: "",
-        logo_url: "",
+        logo: null,
       });
     }
   }, [initialData]);
 
-  // Handle form field changes
+  console.log(restaurantDetails, "el senor almibape");
+
+  // Function to handle form field changes (for both text inputs and logo file)
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRestaurantDetails((prevState) => ({
@@ -55,17 +67,47 @@ const RestaurantModal = ({
     }));
   };
 
-  // Handle form submission (for both adding and updating)
-  const handleSubmit = () => {
-    onSubmit(restaurantDetails);
-    onClose(); // Close modal after submission
+  // Handle file upload for logo (e.g., uploading a logo image to S3)
+  const handleFileChange = (e) => {
+    setRestaurantDetails((prevState) => ({
+      ...prevState,
+      logo: e.target.files[0], // Store the file object when selected
+    }));
+    console.log(e.target.files[0], "Terrenaitor");
   };
 
-  // Handle restaurant deletion
-  const handleDelete = () => {
-    if (onDelete && initialData) {
-      onDelete(initialData.id); // Pass the restaurant ID to delete
-      onClose(); // Close modal after deletion
+  // Function to handle form submission (create or update restaurant)
+  const handleSubmit = async (restaurantDetails) => {
+    try {
+      if (initialData) {
+        // If editing, call updateRestaurant
+        await updateRestaurant(initialData.id, restaurantDetails);
+        toast.success("Restaurant updated successfully!"); // Success notification
+      } else {
+        // If creating, call createRestaurant
+        await createRestaurant(restaurantDetails);
+        toast.success("Restaurant added successfully!"); // Success notification
+      }
+      // refreshData(); // Refresh the restaurant list after changes
+      onClose(); // Close the modal
+    } catch (error) {
+      console.error("Error submitting restaurant form:", error);
+      toast.error("Error saving restaurant. Please try again."); // Error notification
+    }
+  };
+
+  // Function to handle restaurant deletion
+  const handleDelete = async () => {
+    if (initialData) {
+      try {
+        await deleteRestaurant(initialData.id); // Delete the restaurant by ID
+        // refreshData(); // Refresh the restaurant list after deletion
+        onClose(); // Close the modal
+        toast.success("Restaurant deleted successfully!"); // Success notification
+      } catch (error) {
+        console.error("Error deleting restaurant:", error);
+        toast.error("Error deleting restaurant. Please try again."); // Error notification
+      }
     }
   };
 
@@ -78,7 +120,7 @@ const RestaurantModal = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {/* Restaurant Name */}
+          {/* Restaurant Name Input */}
           <FormControl mb={4}>
             <FormLabel>Name</FormLabel>
             <Input
@@ -89,7 +131,7 @@ const RestaurantModal = ({
             />
           </FormControl>
 
-          {/* Restaurant Location */}
+          {/* Restaurant Location Input */}
           <FormControl mb={4}>
             <FormLabel>Location</FormLabel>
             <Input
@@ -100,7 +142,7 @@ const RestaurantModal = ({
             />
           </FormControl>
 
-          {/* Opening Hours */}
+          {/* Restaurant Opening Hours Input */}
           <FormControl mb={4}>
             <FormLabel>Opening Hours</FormLabel>
             <Input
@@ -111,7 +153,7 @@ const RestaurantModal = ({
             />
           </FormControl>
 
-          {/* Contact Email */}
+          {/* Contact Email Input */}
           <FormControl mb={4}>
             <FormLabel>Contact Email</FormLabel>
             <Input
@@ -123,7 +165,7 @@ const RestaurantModal = ({
             />
           </FormControl>
 
-          {/* Contact Phone */}
+          {/* Contact Phone Input */}
           <FormControl mb={4}>
             <FormLabel>Contact Phone</FormLabel>
             <Input
@@ -134,14 +176,14 @@ const RestaurantModal = ({
             />
           </FormControl>
 
-          {/* Logo URL */}
+          {/* Logo File Upload */}
           <FormControl mb={4}>
-            <FormLabel>Logo URL</FormLabel>
+            <FormLabel>Logo</FormLabel>
             <Input
-              name="logo_url"
-              value={restaurantDetails.logo_url}
-              onChange={handleChange}
-              placeholder="http://example.com/logo.png"
+              name="logo"
+              type="file"
+              // value={restaurantDetails.logo}
+              onChange={handleFileChange} // Handle file uploads
             />
           </FormControl>
         </ModalBody>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   SimpleGrid,
@@ -11,139 +11,137 @@ import MenuBar from "../../components/MenuBar";
 import RestaurantName from "../../components/RestaurantName";
 import FoodCard from "../../components/FoodCard";
 import EmptyFood from "../../components/EmptyFood";
-import FoodItemModal from "../../components/FoodItemModal"; // Import the FoodItemModal
-import RestaurantModal from "../../components/RestaurantModal"; // Import the RestaurantModal
-import CategoryModal from "../../components/CategoryModal"; // Import the CategoryModal
-import { FaDrumstickBite, FaAppleAlt, FaFish } from "react-icons/fa";
-import { RiDrinks2Fill } from "react-icons/ri";
+import FoodItemModal from "../../components/FoodItemModal";
+import RestaurantModal from "../../components/RestaurantModal";
+import CategoryModal from "../../components/CategoryModal";
 import { MdEdit } from "react-icons/md";
+import { getAllCategories } from "../../api/controllers/Categories";
+import {
+  getAllMenuItems,
+  createMenuItem,
+  updateMenuItem,
+  deleteMenuItem,
+} from "../../api/controllers/MenuItems";
 
-const foodItems = [
-  {
-    id: 1,
-    imageUrl: "https://i.imgur.com/zRgza7r.png",
-    category: "Chicken",
-    description: "Mixed Kebab",
-    price: "15.65",
-  },
-  {
-    id: 2,
-    imageUrl: "https://i.imgur.com/0PSt4Ws.jpeg",
-    category: "Fish",
-    description: "Grilled Fish",
-    price: "18.00",
-  },
-  {
-    id: 3,
-    imageUrl: "https://i.imgur.com/Hjq64PV.png",
-    category: "Fruits",
-    description: "Fruit Salad",
-    price: "10.50",
-  },
-];
-
-const categories = [
-  { label: "Chicken", icon: FaDrumstickBite },
-  { label: "Fruits", icon: FaAppleAlt },
-  { label: "Fish", icon: FaFish },
-  { label: "Drinks", icon: RiDrinks2Fill },
-];
-
-const MainPage = () => {
+const MainPage = ({ selectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
 
   const [isModalOpen, setModalOpen] = useState(false);
-  const [foodList, setFoodList] = useState(foodItems); // State to manage food items
   const [selectedItem, setSelectedItem] = useState(null); // Selected item for editing
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null); // Selected category for filtering
 
-  const [isCategoryOpen, setCategoryOpen] = useState(false); // State to control Category modal
-  const [selectedCategory, setSelectedCategory] = useState(null); // Selected category for editing
+  const [isCategoryOpen, setCategoryOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [menuItems, setMenuItems] = useState([]); // State to manage menu items from API
 
-  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false); // Restaurant modal state
-  const [restaurantDetails, setRestaurantDetails] = useState({
-    id: 1,
-    name: "Restaurant A",
-    location: "123 Main St",
-    opening_hours: "9AM - 9PM",
-    contact_email: "contact@restaurant.com",
-    contact_phone: "123-456-7890",
-    logo_url: "http://example.com/logo.png",
-  });
+  const [restaurantDetails, setRestaurantDetails] = useState({});
+  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
 
-  const handleAddItem = () => {
-    setSelectedItem(null); // Reset selected item for add mode
-    setModalOpen(true); // Open the modal
-  };
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoryData = await getAllCategories();
+        setCategories(categoryData);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+      }
+    };
 
-  // Open modal for editing food item
-  const handleEditItem = (item) => {
-    setSelectedItem(item); // Set the selected item for editing
-    setModalOpen(true); // Open the modal
-  };
-
-  // Function to handle submission of the new or edited food item
-  const handleNewFoodItem = (newItem) => {
-    if (selectedItem) {
-      // Update the item if it's in edit mode
-      const updatedFoodItems = foodList.map((item) =>
-        item.id === selectedItem.id ? { ...newItem, id: selectedItem.id } : item
-      );
-      setFoodList(updatedFoodItems);
-    } else {
-      // Add a new item
-      const updatedFoodItems = [
-        ...foodList,
-        { ...newItem, id: foodList.length + 1 },
-      ];
-      setFoodList(updatedFoodItems);
+    if (selectedRestaurant) {
+      setRestaurantDetails(selectedRestaurant);
     }
-    setModalOpen(false);
-  };
 
-  // Handle item deletion
-  const handleDeleteItem = (id) => {
-    const updatedFoodItems = foodList.filter((item) => item.id !== id);
-    setFoodList(updatedFoodItems);
-    setModalOpen(false); // Close the modal after deletion
-  };
+    fetchCategories();
+  }, [selectedRestaurant]);
 
-  // Handle opening the restaurant modal for editing
-  const handleEditRestaurant = () => {
-    setRestaurantModalOpen(true);
-  };
+  // Fetch menu items from API
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      try {
+        const itemsData = await getAllMenuItems();
+        setMenuItems(itemsData);
+      } catch (error) {
+        console.error("Error fetching menu items:", error);
+      }
+    };
 
-  // Handle restaurant details update
-  const handleUpdateRestaurant = (updatedRestaurant) => {
-    setRestaurantDetails(updatedRestaurant); // Update restaurant state
-    setRestaurantModalOpen(false); // Close the modal
-  };
+    fetchMenuItems();
+  }, []);
 
-  // Group food items by category
-  const groupedFoodItems = foodList.reduce((groups, item) => {
-    if (!groups[item.category]) {
-      groups[item.category] = [];
+  // Add or update food item via API
+  const handleNewFoodItem = async (newItem) => {
+    try {
+      if (selectedItem) {
+        // Update existing item via API
+        const updatedItem = await updateMenuItem(selectedItem.id, newItem);
+        setMenuItems((prevItems) =>
+          prevItems.map((item) =>
+            item.id === selectedItem.id ? updatedItem : item
+          )
+        );
+      } else {
+        // Add new item via API
+        const createdItem = await createMenuItem(newItem);
+        setMenuItems((prevItems) => [...prevItems, createdItem]);
+      }
+      setModalOpen(false);
+    } catch (error) {
+      console.error("Error saving food item:", error);
     }
-    groups[item.category].push(item);
-    return groups;
-  }, {});
+  };
 
-  // Function to open category edit modal
+  // Handle item deletion via API
+  const handleDeleteItem = async (id) => {
+    try {
+      await deleteMenuItem(id);
+      setMenuItems((prevItems) => prevItems.filter((item) => item.id !== id));
+      setModalOpen(false);
+    } catch (error) {
+      console.error("Error deleting food item:", error);
+    }
+  };
+
+  // Function to filter items by selected category
+  const filteredFoodItems = selectedCategoryId
+    ? menuItems.filter((item) => item.category === selectedCategoryId)
+    : menuItems;
+
+  // Function to handle category selection
+  const handleCategorySelect = (categoryId) => {
+    setSelectedCategoryId(categoryId);
+  };
+
   const handleEditCategory = (category) => {
-    setSelectedCategory(category); // Set the category for editing
-    setCategoryOpen(true); // Open the category modal
+    setSelectedCategory(category);
+    setCategoryOpen(true);
   };
 
-  // Function to handle add/update category
   const handleAddOrUpdateCategory = (newCategory) => {
     console.log("Add or Update Category:", newCategory);
     setCategoryOpen(false);
   };
 
-  // Function to handle delete category
   const handleDeleteCategory = (categoryId) => {
     console.log("Delete Category ID:", categoryId);
     setCategoryOpen(false);
+  };
+
+  const handleEditRestaurant = () => {
+    setRestaurantModalOpen(true); // Open the restaurant modal
+  };
+  const handleEditItem = (item) => {
+    setSelectedItem(item); // Set the selected item for editing
+    setModalOpen(true); // Open the modal
+  };
+  const handleAddItem = () => {
+    setSelectedItem(null); // Reset selected item for add mode
+    setModalOpen(true); // Open the modal
+  };
+  const handleUpdateRestaurant = (updatedRestaurant) => {
+    setRestaurantDetails(updatedRestaurant); // Update restaurant state
+    setRestaurantModalOpen(false); // Close the modal
   };
 
   return (
@@ -155,47 +153,58 @@ const MainPage = () => {
     >
       {/* Restaurant Name with edit functionality */}
       <RestaurantName
-        name={restaurantDetails.name}
+        name={restaurantDetails?.name || "Select a restaurant"}
         onEdit={handleEditRestaurant}
       />
 
       {/* Menu Bar */}
-      <MenuBar categories={categories} />
+      <MenuBar
+        categories={categories}
+        selectedCategoryId={selectedCategoryId} // Pass selected category ID
+        onCategorySelect={handleCategorySelect} // Pass category selection handler
+      />
 
       {/* Conditional rendering of FoodCards or EmptyFood */}
-      {Object.keys(groupedFoodItems).length > 0 ? (
-        Object.keys(groupedFoodItems).map((category) => (
-          <Box key={category} mt={8}>
-            {/* Category Header */}
-            <Flex justifyContent="center" alignItems="center">
-              <Text fontSize="2xl" fontWeight="bold" mb={4}>
-                {category}
-              </Text>
-              <IconButton
-                aria-label="Edit Category"
-                icon={<MdEdit />}
-                size="lg"
-                variant="ghost"
-                pb={4}
-                onClick={() => handleEditCategory(category)} // Trigger modal for editing category
-              />
-            </Flex>
-
-            {/* Grid of food items for the category */}
-            <Flex justifyContent="center">
-              <SimpleGrid columns={[1, 2, 3, 4, 5, 6]} spacing={4}>
-                {groupedFoodItems[category].map((item) => (
-                  <FoodCard
-                    key={item.id}
-                    imageUrl={item.imageUrl}
-                    category={item.category}
-                    description={item.description}
-                    price={item.price}
-                    onClick={() => handleEditItem(item)} // Open modal for editing food item
+      {filteredFoodItems.length > 0 ? (
+        categories.map((category) => (
+          <Box key={category.id} mt={8}>
+            {filteredFoodItems.some(
+              (item) => item.category === category.id
+            ) && (
+              <>
+                <Flex justifyContent="center" alignItems="center">
+                  <Text fontSize="2xl" fontWeight="bold" mb={4}>
+                    {category.name}
+                  </Text>
+                  <IconButton
+                    aria-label="Edit Category"
+                    icon={<MdEdit />}
+                    size="lg"
+                    variant="ghost"
+                    pb={4}
+                    onClick={() => handleEditCategory(category)}
                   />
-                ))}
-              </SimpleGrid>
-            </Flex>
+                </Flex>
+
+                {/* Grid of food items for the category */}
+                <Flex justifyContent="center">
+                  <SimpleGrid columns={[1, 2, 3, 4, 5, 6]} spacing={4}>
+                    {filteredFoodItems
+                      .filter((item) => item.category === category.id)
+                      .map((item) => (
+                        <FoodCard
+                          key={item.id}
+                          imageUrl={item.imageUrl}
+                          category={item.name}
+                          description={item.description}
+                          price={item.price}
+                          onClick={() => handleEditItem(item)}
+                        />
+                      ))}
+                  </SimpleGrid>
+                </Flex>
+              </>
+            )}
           </Box>
         ))
       ) : (
@@ -216,7 +225,7 @@ const MainPage = () => {
           transition: "0.3s",
         }}
         cursor="pointer"
-        onClick={handleAddItem} // Trigger function to add a new item
+        onClick={handleAddItem}
         mt={8}
         mx="auto"
       >
@@ -243,27 +252,28 @@ const MainPage = () => {
       {/* Food Item Modal */}
       <FoodItemModal
         isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)} // Close the modal
-        onSubmit={handleNewFoodItem} // Handle the new or edited food item submission
-        onDelete={handleDeleteItem} // Handle deletion of food item
-        initialData={selectedItem} // Pass selected item for editing
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleNewFoodItem}
+        onDelete={handleDeleteItem}
+        initialData={selectedItem}
+        categories={categories} // Pass the list of categories
       />
 
-      {/* Restaurant Edit Modal */}
+      {/* Modals for editing restaurant */}
       <RestaurantModal
         isOpen={isRestaurantModalOpen}
-        onClose={() => setRestaurantModalOpen(false)} // Close modal
-        onSubmit={handleUpdateRestaurant} // Handle restaurant update
-        initialData={restaurantDetails} // Pass current restaurant data
+        onClose={() => setRestaurantModalOpen(false)}
+        onSubmit={handleUpdateRestaurant}
+        initialData={restaurantDetails}
       />
 
       {/* Category Edit Modal */}
       <CategoryModal
         isOpen={isCategoryOpen}
-        onClose={() => setCategoryOpen(false)} // Close modal
-        onSubmit={handleAddOrUpdateCategory} // Function to handle add/update
-        onDelete={handleDeleteCategory} // Function to handle deletion
-        initialData={selectedCategory} // Pass selected category for editing
+        onClose={() => setCategoryOpen(false)}
+        onSubmit={handleAddOrUpdateCategory}
+        onDelete={handleDeleteCategory}
+        initialData={selectedCategory}
       />
     </Box>
   );

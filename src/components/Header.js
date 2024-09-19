@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Flex,
@@ -27,9 +27,11 @@ import {
 } from "@chakra-ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import RestaurantModal from "./RestaurantModal"; // Import the RestaurantModal component
+import RestaurantName from "./RestaurantName"; // Import RestaurantName component
 import HelpModal from "./HelpModal"; // Assuming HelpModal is a separate component
+import { getAllRestaurants } from "../api/controllers/Restaurants"; // Import your controllers
 
-const Header = () => {
+const Header = ({ onSelectRestaurant }) => {
   const { colorMode, toggleColorMode } = useColorMode();
   const { isOpen, onToggle } = useDisclosure(); // For mobile menu toggle
   const {
@@ -45,16 +47,41 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const [restaurants, setRestaurants] = useState([]);
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null); // State for selected restaurant
+
+  // Fetch restaurants when the component mounts
+  useEffect(() => {
+    const fetchRestaurants = async () => {
+      try {
+        const data = await getAllRestaurants();
+        setRestaurants(data);
+        if (data.length > 0) {
+          setSelectedRestaurant(data[0]);
+          onSelectRestaurant(data[0]); // Pass the first restaurant to the parent
+        }
+      } catch (error) {
+        console.error("Error fetching restaurants:", error);
+      }
+    };
+    fetchRestaurants();
+  }, [onSelectRestaurant]);
+
+  // Handle restaurant selection from the dropdown
+  const handleSelectRestaurant = (restaurant) => {
+    setSelectedRestaurant(restaurant);
+    onSelectRestaurant(restaurant); // Call the parent's function to update in the parent
+  };
+
   const handleLogout = () => {
     console.log("Logging out...");
     navigate("/login");
   };
 
-  const restaurants = ["Restaurant A", "Restaurant B", "Restaurant C"];
-
+  // Handle adding a new restaurant
   const handleAddRestaurant = (restaurantDetails) => {
     console.log("New Restaurant Details:", restaurantDetails);
-    // Logic to handle adding the restaurant
+    // You can add the logic here to handle the addition of the restaurant
   };
 
   return (
@@ -79,6 +106,7 @@ const Header = () => {
           <Stack direction="row" spacing={7}>
             {location.pathname === "/home" ? (
               <>
+                {/* Restaurant dropdown menu */}
                 <Menu>
                   <MenuButton
                     as={Button}
@@ -88,16 +116,19 @@ const Header = () => {
                     Restaurantes
                   </MenuButton>
                   <MenuList>
-                    {restaurants.map((restaurant, index) => (
-                      <MenuItem
-                        key={index}
-                        onClick={() =>
-                          console.log(`Navigating to ${restaurant}`)
-                        }
-                      >
-                        {restaurant}
-                      </MenuItem>
-                    ))}
+                    {/* Dynamically render restaurant names */}
+                    {restaurants.length > 0 ? (
+                      restaurants.map((restaurant) => (
+                        <MenuItem
+                          key={restaurant.id}
+                          onClick={() => handleSelectRestaurant(restaurant)}
+                        >
+                          {restaurant.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem>No restaurants available</MenuItem>
+                    )}
                     <MenuItem
                       icon={<AddIcon />}
                       onClick={openRestaurantModal}
@@ -160,6 +191,7 @@ const Header = () => {
           <Stack as="nav" spacing={4}>
             {location.pathname === "/home" ? (
               <>
+                {/* Restaurant dropdown for mobile */}
                 <Menu>
                   <MenuButton
                     as={Button}
@@ -169,16 +201,18 @@ const Header = () => {
                     Restaurantes
                   </MenuButton>
                   <MenuList>
-                    {restaurants.map((restaurant, index) => (
-                      <MenuItem
-                        key={index}
-                        onClick={() =>
-                          console.log(`Navigating to ${restaurant}`)
-                        }
-                      >
-                        {restaurant}
-                      </MenuItem>
-                    ))}
+                    {restaurants.length > 0 ? (
+                      restaurants.map((restaurant) => (
+                        <MenuItem
+                          key={restaurant.id}
+                          onClick={() => handleSelectRestaurant(restaurant)}
+                        >
+                          {restaurant.name}
+                        </MenuItem>
+                      ))
+                    ) : (
+                      <MenuItem>No restaurants available</MenuItem>
+                    )}
                     <MenuItem
                       icon={<AddIcon />}
                       onClick={openRestaurantModal}
@@ -212,10 +246,11 @@ const Header = () => {
         </Box>
       </Collapse>
 
-      {/* Restaurant Modal for adding new restaurant */}
+      {/* Restaurant Modal for adding/editing a restaurant */}
       <RestaurantModal
         isOpen={isRestaurantModalOpen}
         onClose={closeRestaurantModal}
+        initialData={selectedRestaurant} // Pass the selected restaurant data for editing
         onSubmit={handleAddRestaurant}
       />
 

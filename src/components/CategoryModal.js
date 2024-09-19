@@ -32,7 +32,14 @@ import {
   FaWineBottle,
   FaBeer,
 } from "react-icons/fa";
+// Import the necessary controllers
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+} from "../api/controllers/Categories";
 
+// Icon list for category selection
 const iconList = [
   FaDrumstickBite,
   FaAppleAlt,
@@ -57,22 +64,30 @@ const CategoryModal = ({
   onSubmit,
   initialData,
   onDelete,
+  selectedRestaurant,
 }) => {
   const [category, setCategory] = useState({
     name: "",
     description: "",
-    icon: null, // Add icon to the state
+    icon: null, // Icon state
+    restaurant: selectedRestaurant?.id || null, // Assign the restaurant ID
   });
 
-  // Effect to pre-fill the modal if it's in edit mode
+  // Pre-fill modal for editing
   useEffect(() => {
     if (initialData) {
-      setCategory(initialData);
+      setCategory({ ...initialData, restaurant: selectedRestaurant?.id }); // Add restaurant ID to the category
     } else {
-      setCategory({ name: "", description: "", icon: null }); // Reset for new category
+      setCategory({
+        name: "",
+        description: "",
+        icon: null,
+        restaurant: selectedRestaurant?.id,
+      }); // Reset for new category
     }
-  }, [initialData]);
+  }, [initialData, selectedRestaurant]);
 
+  // Handle form changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCategory((prevState) => ({
@@ -89,15 +104,33 @@ const CategoryModal = ({
     }));
   };
 
-  const handleSubmit = () => {
-    onSubmit(category); // Call onSubmit with the category data (update or add)
-    onClose(); // Close the modal after submission
+  // Handle form submission (create or update category)
+  const handleSubmit = async () => {
+    try {
+      if (initialData) {
+        // Update category if initialData exists
+        await updateCategory(initialData.id, category);
+      } else {
+        // Create new category
+        await createCategory(category);
+      }
+      onSubmit(category); // Call parent submit handler to update the UI
+      onClose(); // Close modal on success
+    } catch (error) {
+      console.error("Error submitting category:", error);
+    }
   };
 
-  const handleDelete = () => {
+  // Handle delete action
+  const handleDelete = async () => {
     if (onDelete && initialData) {
-      onDelete(initialData.id); // Pass the ID to the delete handler
-      onClose(); // Close modal after delete
+      try {
+        await deleteCategory(initialData.id); // Call delete controller
+        onDelete(initialData.id); // Call parent delete handler to update the UI
+        onClose(); // Close modal after deletion
+      } catch (error) {
+        console.error("Error deleting category:", error);
+      }
     }
   };
 
@@ -110,6 +143,7 @@ const CategoryModal = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
+          {/* Category Name Input */}
           <FormControl mb={4}>
             <FormLabel>Category Name</FormLabel>
             <Input
@@ -120,6 +154,7 @@ const CategoryModal = ({
             />
           </FormControl>
 
+          {/* Description Input */}
           <FormControl mb={4}>
             <FormLabel>Description</FormLabel>
             <Input
@@ -130,6 +165,7 @@ const CategoryModal = ({
             />
           </FormControl>
 
+          {/* Icon Selection */}
           <FormControl mb={4}>
             <FormLabel>Select Icon</FormLabel>
             <Grid templateColumns="repeat(5, 1fr)" gap={4}>
@@ -153,11 +189,13 @@ const CategoryModal = ({
         </ModalBody>
 
         <ModalFooter>
+          {/* Delete Button (only show if editing) */}
           {initialData && (
             <Button colorScheme="red" mr="auto" onClick={handleDelete}>
               Delete
             </Button>
           )}
+          {/* Save or Update Button */}
           <Button colorScheme="blue" onClick={handleSubmit}>
             {initialData ? "Update" : "Save"}
           </Button>
