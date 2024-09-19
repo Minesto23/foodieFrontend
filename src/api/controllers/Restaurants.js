@@ -35,15 +35,30 @@ export const getRestaurantById = async (restaurantId) => {
 
 // Actualizar un restaurante por ID
 export const updateRestaurant = async (restaurantId, updatedData) => {
-  console.log(updatedData, "sharingan");
   try {
+    const formData = new FormData();
+
+    // Agregar todos los campos al FormData, incluyendo el archivo (logo)
+    for (const key in updatedData) {
+      if (updatedData[key] !== null) {
+        formData.append(key, updatedData[key]);
+      }
+    }
+
+    // Enviar la solicitud PUT con FormData
     const response = await Axios.put(
       `/api/restaurants/${restaurantId}/`,
-      updatedData
+      formData, // FormData se encarga del archivo correctamente
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // Especificar multipart para enviar archivos
+        },
+      }
     );
+
     return response.data;
   } catch (error) {
-    console.error("Error updating restaurant:", error);
+    console.error("Error actualizando el restaurante:", error);
     throw error;
   }
 };
