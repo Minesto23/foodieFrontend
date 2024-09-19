@@ -77,11 +77,14 @@ const RestaurantModal = ({
   };
 
   // Function to handle form submission (create or update restaurant)
-  const handleSubmit = async (restaurantDetails) => {
+  const handleSubmit = async () => {
     try {
       if (initialData) {
         // If editing, call updateRestaurant
-        await updateRestaurant(initialData.id, restaurantDetails);
+        const response = await updateRestaurant(
+          initialData.id,
+          restaurantDetails
+        );
         toast.success("Restaurant updated successfully!"); // Success notification
       } else {
         // If creating, call createRestaurant
