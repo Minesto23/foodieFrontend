@@ -41,21 +41,21 @@ import {
 
 // Icon list for category selection
 const iconList = [
-  FaDrumstickBite,
-  FaAppleAlt,
-  FaFish,
-  FaCoffee,
-  FaPizzaSlice,
-  FaIceCream,
-  FaCarrot,
-  FaCheese,
-  FaHamburger,
-  FaBreadSlice,
-  FaCookie,
-  FaLeaf,
-  FaPepperHot,
-  FaWineBottle,
-  FaBeer,
+  { name: "FaDrumstickBite", component: FaDrumstickBite },
+  { name: "FaAppleAlt", component: FaAppleAlt },
+  { name: "FaFish", component: FaFish },
+  { name: "FaCoffee", component: FaCoffee },
+  { name: "FaPizzaSlice", component: FaPizzaSlice },
+  { name: "FaIceCream", component: FaIceCream },
+  { name: "FaCarrot", component: FaCarrot },
+  { name: "FaCheese", component: FaCheese },
+  { name: "FaHamburger", component: FaHamburger },
+  { name: "FaBreadSlice", component: FaBreadSlice },
+  { name: "FaCookie", component: FaCookie },
+  { name: "FaLeaf", component: FaLeaf },
+  { name: "FaPepperHot", component: FaPepperHot },
+  { name: "FaWineBottle", component: FaWineBottle },
+  { name: "FaBeer", component: FaBeer },
 ];
 
 const CategoryModal = ({
@@ -69,7 +69,7 @@ const CategoryModal = ({
   const [category, setCategory] = useState({
     name: "",
     description: "",
-    icon: null, // Icon state
+    icon_name: "", // Save the icon's name here
     restaurant: selectedRestaurant?.id || null, // Assign the restaurant ID
   });
 
@@ -81,7 +81,7 @@ const CategoryModal = ({
       setCategory({
         name: "",
         description: "",
-        icon: null,
+        icon_name: "",
         restaurant: selectedRestaurant?.id,
       }); // Reset for new category
     }
@@ -97,24 +97,31 @@ const CategoryModal = ({
   };
 
   // Handle icon selection
-  const handleIconSelect = (selectedIcon) => {
+  const handleIconSelect = (selectedIconName) => {
     setCategory((prevState) => ({
       ...prevState,
-      icon: selectedIcon,
+      icon_name: selectedIconName, // Save icon name instead of the component
     }));
   };
 
   // Handle form submission (create or update category)
   const handleSubmit = async () => {
     try {
+      // Ensure the restaurant ID is included in the category payload
+      const categoryPayload = {
+        ...category,
+        restaurant: selectedRestaurant?.id, // Ensure restaurant ID is sent
+      };
+
+      console.log("Payload:", categoryPayload); // Debug the payload here
       if (initialData) {
         // Update category if initialData exists
-        await updateCategory(initialData.id, category);
+        await updateCategory(initialData.id, categoryPayload);
       } else {
         // Create new category
-        await createCategory(category);
+        await createCategory(categoryPayload);
       }
-      onSubmit(category); // Call parent submit handler to update the UI
+      onSubmit(categoryPayload); // Call parent submit handler to update the UI
       onClose(); // Close modal on success
     } catch (error) {
       console.error("Error submitting category:", error);
@@ -169,19 +176,19 @@ const CategoryModal = ({
           <FormControl mb={4}>
             <FormLabel>Select Icon</FormLabel>
             <Grid templateColumns="repeat(5, 1fr)" gap={4}>
-              {iconList.map((IconComponent, index) => (
+              {iconList.map((icon, index) => (
                 <Box
                   key={index}
                   p={2}
                   border="1px solid"
                   borderColor={
-                    category.icon === IconComponent ? "blue.400" : "gray.200"
+                    category.icon_name === icon.name ? "blue.400" : "gray.200"
                   }
                   borderRadius="md"
                   cursor="pointer"
-                  onClick={() => handleIconSelect(IconComponent)}
+                  onClick={() => handleIconSelect(icon.name)}
                 >
-                  <Icon as={IconComponent} w={6} h={6} />
+                  <Icon as={icon.component} w={6} h={6} />
                 </Box>
               ))}
             </Grid>

@@ -83,15 +83,20 @@ const FoodItemModal = ({
     }
 
     try {
+      let response;
       if (initialData) {
         // Update existing item
-        const updatedItem = await updateMenuItem(initialData.id, formData);
-        onSubmit(updatedItem); // Pass the updated item to the parent component
+        response = await updateMenuItem(initialData.id, formData);
       } else {
         // Create new item
-        const newItem = await createMenuItem(formData);
-        onSubmit(newItem); // Pass the new item to the parent component
+        response = await createMenuItem(formData);
       }
+
+      if (response.image_url) {
+        formData.append("image_url", response.image_url); // Store the image URL after uploading
+      }
+
+      onSubmit(response); // Pass the response (with the image_url) to the parent component
       onClose(); // Close modal on success
     } catch (error) {
       console.error("Error saving menu item:", error);

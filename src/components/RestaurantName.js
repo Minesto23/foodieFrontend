@@ -1,6 +1,7 @@
 import React from "react";
 import { Text, Box, IconButton, Flex } from "@chakra-ui/react";
 import { MdEdit } from "react-icons/md";
+import { FaQrcode } from "react-icons/fa";
 
 const RestaurantName = ({ name, onEdit }) => {
   return (

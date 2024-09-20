@@ -12,6 +12,7 @@ import RestaurantName from "../../components/RestaurantName";
 import FoodCard from "../../components/FoodCard";
 import EmptyFood from "../../components/EmptyFood";
 import FoodItemModal from "../../components/FoodItemModal";
+import UpdateDeleteRestaurantModal from "../../components/RestaurantModalUpdateDelete";
 import RestaurantModal from "../../components/RestaurantModal";
 import CategoryModal from "../../components/CategoryModal";
 import { MdEdit } from "react-icons/md";
@@ -22,6 +23,8 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from "../../api/controllers/MenuItems";
+import { deleteRestaurant } from "../../api/controllers/Restaurants";
+import toast from "react-hot-toast";
 
 const MainPage = ({ selectedRestaurant }) => {
   const { colorMode } = useColorMode();
@@ -38,12 +41,18 @@ const MainPage = ({ selectedRestaurant }) => {
 
   const [restaurantDetails, setRestaurantDetails] = useState({});
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
+  const [restaurants, setRestaurants] = useState([]); // Estado para manejar la lista de restaurantes
 
   useEffect(() => {
+    // Fetch categories and filter by selectedRestaurant
     const fetchCategories = async () => {
       try {
         const categoryData = await getAllCategories();
-        setCategories(categoryData);
+        // Filter categories based on the selected restaurant
+        const filteredCategories = categoryData.filter(
+          (category) => category.restaurant === selectedRestaurant.id
+        );
+        setCategories(filteredCategories);
       } catch (error) {
         console.error("Error fetching categories:", error);
       }
@@ -51,24 +60,31 @@ const MainPage = ({ selectedRestaurant }) => {
 
     if (selectedRestaurant) {
       setRestaurantDetails(selectedRestaurant);
+      fetchCategories(); // Fetch categories when a restaurant is selected
     }
-
-    fetchCategories();
   }, [selectedRestaurant]);
 
-  // Fetch menu items from API
+  // Fetch menu items from API and filter by categories of the selected restaurant
   useEffect(() => {
     const fetchMenuItems = async () => {
       try {
         const itemsData = await getAllMenuItems();
-        setMenuItems(itemsData);
+        // Get the category IDs of the filtered categories
+        const categoryIds = categories.map((category) => category.id);
+        // Filter menu items based on the categories of the selected restaurant
+        const filteredMenuItems = itemsData.filter((item) =>
+          categoryIds.includes(item.category)
+        );
+        setMenuItems(filteredMenuItems);
       } catch (error) {
         console.error("Error fetching menu items:", error);
       }
     };
 
-    fetchMenuItems();
-  }, []);
+    if (selectedRestaurant && categories.length > 0) {
+      fetchMenuItems(); // Fetch items when a restaurant and its categories are available
+    }
+  }, [selectedRestaurant, categories]);
 
   // Add or update food item via API
   const handleNewFoodItem = async (newItem) => {
@@ -144,6 +160,37 @@ const MainPage = ({ selectedRestaurant }) => {
     setRestaurantModalOpen(false); // Close the modal
   };
 
+  const refreshData = async () => {
+    // Refetch categories and menu items after modal actions
+    const categoryData = await getAllCategories();
+    const filteredCategories = categoryData.filter(
+      (category) => category.restaurant === selectedRestaurant.id
+    );
+    setCategories(filteredCategories);
+
+    const itemsData = await getAllMenuItems();
+    const categoryIds = filteredCategories.map((category) => category.id);
+    const filteredMenuItems = itemsData.filter((item) =>
+      categoryIds.includes(item.category)
+    );
+    setMenuItems(filteredMenuItems);
+  };
+
+  const handleDeleteRestaurant = async (restaurantId) => {
+    try {
+      await deleteRestaurant(restaurantId); // Llamada a la API para eliminar el restaurante
+      // Actualiza el estado de los restaurantes después de eliminarlo
+      setRestaurants((prevRestaurants) =>
+        prevRestaurants.filter((restaurant) => restaurant.id !== restaurantId)
+      );
+      setRestaurantModalOpen(false); // Cerrar el modal después de la eliminación
+      toast.success("Restaurant deleted successfully!"); // Mostrar notificación de éxito
+    } catch (error) {
+      console.error("Error deleting restaurant:", error);
+      toast.error("Failed to delete restaurant. Please try again."); // Notificación de error
+    }
+  };
+
   return (
     <Box
       bg={isDark ? "gray.800" : "gray.50"}
@@ -162,6 +209,7 @@ const MainPage = ({ selectedRestaurant }) => {
         categories={categories}
         selectedCategoryId={selectedCategoryId} // Pass selected category ID
         onCategorySelect={handleCategorySelect} // Pass category selection handler
+        selectedRestaurant={selectedRestaurant} // Pass selectedRestaurant
       />
 
       {/* Conditional rendering of FoodCards or EmptyFood */}
@@ -193,8 +241,9 @@ const MainPage = ({ selectedRestaurant }) => {
                       .filter((item) => item.category === category.id)
                       .map((item) => (
                         <FoodCard
-                          key={item.id}
-                          imageUrl={item.imageUrl}
+                          key={item.id} // Add a unique key prop here
+                          imageUrl={item.image_url}
+                          // imageUrl="https://i.imgur.com/qF77EgD.jpeg"
                           category={item.name}
                           description={item.description}
                           price={item.price}
@@ -249,7 +298,7 @@ const MainPage = ({ selectedRestaurant }) => {
         </Text>
       </Box>
 
-      {/* Food Item Modal */}
+      {/* Food Item Modal
       <FoodItemModal
         isOpen={isModalOpen}
         onClose={() => setModalOpen(false)}
@@ -259,8 +308,16 @@ const MainPage = ({ selectedRestaurant }) => {
         categories={categories} // Pass the list of categories
       />
 
+      {/* Modals for updating or deleting a restaurant */}
+      {/* <UpdateDeleteRestaurantModal
+        isOpen={isRestaurantModalOpen}
+        onClose={() => setRestaurantModalOpen(false)}
+        initialData={restaurantDetails} // Pass the restaurant details for editing
+        onSubmit={handleUpdateRestaurant} // Pass the function to update the restaurant
+        onDelete={handleDeleteRestaurant} // Pass the function to delete the restaurant
+      /> */}
       {/* Modals for editing restaurant */}
-      <RestaurantModal
+      {/* <RestaurantModal
         isOpen={isRestaurantModalOpen}
         onClose={() => setRestaurantModalOpen(false)}
         onSubmit={handleUpdateRestaurant}
@@ -268,12 +325,46 @@ const MainPage = ({ selectedRestaurant }) => {
       />
 
       {/* Category Edit Modal */}
-      <CategoryModal
+      {/* <CategoryModal
         isOpen={isCategoryOpen}
         onClose={() => setCategoryOpen(false)}
         onSubmit={handleAddOrUpdateCategory}
         onDelete={handleDeleteCategory}
         initialData={selectedCategory}
+        selectedRestaurant={restaurantDetails} // Pass the selectedRestaurant here
+      /> */}
+      <FoodItemModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setModalOpen(false);
+          refreshData(); // Refrescar datos sin recargar la página completa
+        }}
+        onSubmit={handleNewFoodItem}
+        onDelete={handleDeleteItem}
+        initialData={selectedItem}
+        categories={categories}
+      />
+
+      <RestaurantModal
+        isOpen={isRestaurantModalOpen}
+        onClose={() => {
+          setRestaurantModalOpen(false);
+          refreshData(); // Refrescar datos
+        }}
+        onSubmit={handleUpdateRestaurant}
+        initialData={restaurantDetails}
+      />
+
+      <CategoryModal
+        isOpen={isCategoryOpen}
+        onClose={() => {
+          setCategoryOpen(false);
+          refreshData(); // Refrescar datos
+        }}
+        onSubmit={handleAddOrUpdateCategory}
+        onDelete={handleDeleteCategory}
+        initialData={selectedCategory}
+        selectedRestaurant={restaurantDetails}
       />
     </Box>
   );

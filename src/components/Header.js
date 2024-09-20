@@ -26,10 +26,10 @@ import {
   QuestionIcon,
 } from "@chakra-ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import RestaurantModal from "./RestaurantModal"; // Import the RestaurantModal component
-import RestaurantName from "./RestaurantName"; // Import RestaurantName component
+import CreateRestaurantModal from "./RestaurantModalCreate"; // Import the RestaurantModal component
 import HelpModal from "./HelpModal"; // Assuming HelpModal is a separate component
 import { getAllRestaurants } from "../api/controllers/Restaurants"; // Import your controllers
+import ExportModal from "./ExportModal"; // Import the ExportModal
 
 const Header = ({ onSelectRestaurant }) => {
   const { colorMode, toggleColorMode } = useColorMode();
@@ -44,6 +44,11 @@ const Header = ({ onSelectRestaurant }) => {
     onOpen: openHelpModal,
     onClose: closeHelpModal,
   } = useDisclosure(); // Help modal
+  const {
+    isOpen: isExportModalOpen,
+    onOpen: openExportModal,
+    onClose: closeExportModal,
+  } = useDisclosure(); // Export modal
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -106,6 +111,9 @@ const Header = ({ onSelectRestaurant }) => {
           <Stack direction="row" spacing={7}>
             {location.pathname === "/home" ? (
               <>
+                <Button onClick={openExportModal} colorScheme="red">
+                  Export
+                </Button>
                 {/* Restaurant dropdown menu */}
                 <Menu>
                   <MenuButton
@@ -246,16 +254,22 @@ const Header = ({ onSelectRestaurant }) => {
         </Box>
       </Collapse>
 
-      {/* Restaurant Modal for adding/editing a restaurant */}
-      <RestaurantModal
+      {/* Restaurant Modal for adding a restaurant */}
+      <CreateRestaurantModal
         isOpen={isRestaurantModalOpen}
         onClose={closeRestaurantModal}
-        initialData={selectedRestaurant} // Pass the selected restaurant data for editing
-        onSubmit={handleAddRestaurant}
+        onCreateSuccess={handleAddRestaurant}
       />
 
       {/* Help Modal */}
       <HelpModal isOpen={isHelpModalOpen} onClose={closeHelpModal} />
+
+      {/* Export Modal */}
+      <ExportModal
+        isOpen={isExportModalOpen}
+        onClose={closeExportModal}
+        restaurantId={selectedRestaurant?.id} // Pass the selected restaurant ID
+      />
     </Box>
   );
 };

@@ -4,10 +4,31 @@ import CategoryButton from "./CategoryButton";
 import { FaUtensils, FaPlus } from "react-icons/fa";
 import { useDisclosure } from "@chakra-ui/react";
 import CategoryModal from "./CategoryModal";
-import { FaDrumstickBite, FaAppleAlt, FaFish } from "react-icons/fa";
-import { RiDrinks2Fill } from "react-icons/ri";
+import {
+  FaDrumstickBite,
+  FaAppleAlt,
+  FaFish,
+  FaCoffee,
+  FaPizzaSlice,
+  FaIceCream,
+  FaCarrot,
+  FaCheese,
+  FaHamburger,
+  FaBreadSlice,
+  FaCookie,
+  FaLeaf,
+  FaPepperHot,
+  FaWineBottle,
+  FaBeer,
+} from "react-icons/fa";
+// import { RiDrinks2Fill } from "react-icons/ri";
 
-const MenuBar = ({ categories, selectedCategoryId, onCategorySelect }) => {
+const MenuBar = ({
+  categories,
+  selectedCategoryId,
+  onCategorySelect,
+  selectedRestaurant,
+}) => {
   const {
     isOpen: isCategoryOpen,
     onOpen: onCategoryOpen,
@@ -15,12 +36,21 @@ const MenuBar = ({ categories, selectedCategoryId, onCategorySelect }) => {
   } = useDisclosure();
 
   const iconMapping = {
-    FaUtensils: FaUtensils,
     FaDrumstickBite: FaDrumstickBite,
     FaAppleAlt: FaAppleAlt,
     FaFish: FaFish,
-    RiDrinks2Fill: RiDrinks2Fill,
-    FaPlus: FaPlus,
+    FaCoffee: FaCoffee,
+    FaPizzaSlice: FaPizzaSlice,
+    FaIceCream: FaIceCream,
+    FaCarrot: FaCarrot,
+    FaCheese: FaCheese,
+    FaHamburger: FaHamburger,
+    FaBreadSlice: FaBreadSlice,
+    FaCookie: FaCookie,
+    FaLeaf: FaLeaf,
+    FaPepperHot: FaPepperHot,
+    FaWineBottle: FaWineBottle,
+    FaBeer: FaBeer,
   };
 
   return (
@@ -35,7 +65,7 @@ const MenuBar = ({ categories, selectedCategoryId, onCategorySelect }) => {
         {categories.map((category, index) => (
           <CategoryButton
             key={index}
-            icon={iconMapping[category.icon]}
+            icon={iconMapping[category.icon_name]}
             label={category.name}
             onClick={() => onCategorySelect(category.id)}
             isActive={selectedCategoryId === category.id} // Active if category is selected
@@ -48,6 +78,7 @@ const MenuBar = ({ categories, selectedCategoryId, onCategorySelect }) => {
         isOpen={isCategoryOpen}
         onClose={onCategoryClose}
         onSubmit={(newCategory) => console.log(newCategory)}
+        selectedRestaurant={selectedRestaurant} // Pass the selectedRestaurant here
       />
     </Box>
   );

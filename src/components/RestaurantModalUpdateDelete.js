@@ -11,54 +11,41 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Text,
 } from "@chakra-ui/react";
-import toast from "react-hot-toast"; // Import toast for notifications
+import toast from "react-hot-toast";
 import {
-  createRestaurant,
   updateRestaurant,
   deleteRestaurant,
-} from "../api/controllers/Restaurants"; // Import your controller functions
+} from "../api/controllers/Restaurants"; // Import the update and delete functions
 
-const RestaurantModal = ({
-  isOpen, // Controls if the modal is visible
+const UpdateDeleteRestaurantModal = ({
+  isOpen, // Controls the visibility of the modal
   onClose, // Function to close the modal
-  initialData = null, // Initial data for editing (if provided)
-  // refreshData, // Function to refresh the restaurant list after operations
+  initialData, // The restaurant data to edit
+  onDeleteSuccess, // Callback for successful deletion
+  onUpdateSuccess, // Callback for successful update
 }) => {
-  // Initial state for restaurant form fields
   const [restaurantDetails, setRestaurantDetails] = useState({
     name: "",
     location: "",
     opening_hours: "",
     contact_email: "",
     contact_phone: "",
-    logo: null, // To handle logo file uploads
+    logo: null, // To handle the logo file uploads
   });
 
-  // Effect to load the initial data when editing an existing restaurant
+  // Populate the form with the initial restaurant data for editing
   useEffect(() => {
     if (initialData) {
-      // Populate form with existing restaurant data
       setRestaurantDetails({
         ...initialData,
-        logo: null, // Reset the logo to avoid old URL being passed
-      });
-    } else {
-      // Reset form for new restaurant creation
-      setRestaurantDetails({
-        name: "",
-        location: "",
-        opening_hours: "",
-        contact_email: "",
-        contact_phone: "",
-        logo: null,
+        logo: null, // Reset the logo file to avoid passing old data
       });
     }
   }, [initialData]);
 
-  // console.log(restaurantDetails, "el senor almibape");
-
-  // Function to handle form field changes (for both text inputs and logo file)
+  // Handle form field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRestaurantDetails((prevState) => ({
@@ -67,50 +54,40 @@ const RestaurantModal = ({
     }));
   };
 
-  // Handle file upload for logo (e.g., uploading a logo image to S3)
+  // Handle logo file upload
   const handleFileChange = (e) => {
     setRestaurantDetails((prevState) => ({
       ...prevState,
-      logo: e.target.files[0], // Store the file object when selected
+      logo: e.target.files[0],
     }));
-    console.log(e.target.files[0], "Terrenaitor");
   };
 
-  // Function to handle form submission (create or update restaurant)
+  // Submit form for updating the restaurant
   const handleSubmit = async () => {
     try {
-      if (initialData) {
-        // If editing, call updateRestaurant
-        const response = await updateRestaurant(
-          initialData.id,
-          restaurantDetails
-        );
-        toast.success("Restaurant updated successfully!"); // Success notification
-      } else {
-        // If creating, call createRestaurant
-        await createRestaurant(restaurantDetails);
-        toast.success("Restaurant added successfully!"); // Success notification
-      }
-      // refreshData(); // Refresh the restaurant list after changes
+      const updatedRestaurant = await updateRestaurant(
+        initialData.id,
+        restaurantDetails
+      );
+      toast.success("Restaurant updated successfully!");
+      onUpdateSuccess(updatedRestaurant); // Callback to update the UI after success
       onClose(); // Close the modal
     } catch (error) {
-      console.error("Error submitting restaurant form:", error);
-      toast.error("Error saving restaurant. Please try again."); // Error notification
+      console.error("Error updating restaurant:", error);
+      toast.error("Error updating restaurant.");
     }
   };
 
-  // Function to handle restaurant deletion
+  // Handle deletion of the restaurant
   const handleDelete = async () => {
-    if (initialData) {
-      try {
-        await deleteRestaurant(initialData.id); // Delete the restaurant by ID
-        // refreshData(); // Refresh the restaurant list after deletion
-        onClose(); // Close the modal
-        toast.success("Restaurant deleted successfully!"); // Success notification
-      } catch (error) {
-        console.error("Error deleting restaurant:", error);
-        toast.error("Error deleting restaurant. Please try again."); // Error notification
-      }
+    try {
+      await deleteRestaurant(initialData.id);
+      toast.success("Restaurant deleted successfully!");
+      onDeleteSuccess(initialData.id); // Callback to update the UI after deletion
+      onClose(); // Close the modal
+    } catch (error) {
+      console.error("Error deleting restaurant:", error);
+      toast.error("Error deleting restaurant.");
     }
   };
 
@@ -118,9 +95,7 @@ const RestaurantModal = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>
-          {initialData ? "Edit Restaurant" : "Add New Restaurant"}
-        </ModalHeader>
+        <ModalHeader>Edit or Delete Restaurant</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {/* Restaurant Name Input */}
@@ -182,24 +157,26 @@ const RestaurantModal = ({
           {/* Logo File Upload */}
           <FormControl mb={4}>
             <FormLabel>Logo</FormLabel>
-            <Input
-              name="logo"
-              type="file"
-              // value={restaurantDetails.logo}
-              onChange={handleFileChange} // Handle file uploads
-            />
+            <Input type="file" name="logo" onChange={handleFileChange} />
           </FormControl>
+
+          {/* Confirm Deletion */}
+          <Text color="red.500" mt={4}>
+            Note: Deleting this restaurant will remove all associated data.
+          </Text>
         </ModalBody>
 
         <ModalFooter>
-          {initialData && (
-            <Button colorScheme="red" mr={3} onClick={handleDelete}>
-              Delete
-            </Button>
-          )}
-          <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
-            {initialData ? "Save Changes" : "Add Restaurant"}
+          {/* Delete Button */}
+          <Button colorScheme="red" mr={3} onClick={handleDelete}>
+            Delete
           </Button>
+
+          {/* Save Changes Button */}
+          <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
+            Save Changes
+          </Button>
+
           <Button variant="ghost" onClick={onClose}>
             Cancel
           </Button>
@@ -209,4 +186,4 @@ const RestaurantModal = ({
   );
 };
 
-export default RestaurantModal;
+export default UpdateDeleteRestaurantModal;

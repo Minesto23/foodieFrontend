@@ -36,9 +36,23 @@ export const getMenuItemById = async (menuItemId) => {
 // Actualizar un elemento del menú por ID
 export const updateMenuItem = async (menuItemId, updatedData) => {
   try {
+    const formData = new FormData();
+
+    // Agregar todos los campos al FormData, incluyendo el archivo (logo)
+    for (const key in updatedData) {
+      if (updatedData[key] !== null) {
+        formData.append(key, updatedData[key]);
+      }
+    }
+
     const response = await Axios.put(
       `/api/menu-items/${menuItemId}/`,
-      updatedData
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data", // Especificar multipart para enviar archivos
+        },
+      }
     );
     return response.data;
   } catch (error) {
