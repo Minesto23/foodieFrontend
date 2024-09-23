@@ -12,7 +12,7 @@ import RestaurantName from "../../components/RestaurantName";
 import FoodCard from "../../components/FoodCard";
 import EmptyFood from "../../components/EmptyFood";
 import FoodItemModal from "../../components/FoodItemModal";
-import UpdateDeleteRestaurantModal from "../../components/RestaurantModalUpdateDelete";
+// import UpdateDeleteRestaurantModal from "../../components/RestaurantModalUpdateDelete";
 import RestaurantModal from "../../components/RestaurantModal";
 import CategoryModal from "../../components/CategoryModal";
 import { MdEdit } from "react-icons/md";

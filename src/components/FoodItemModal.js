@@ -18,6 +18,8 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from "../api/controllers/MenuItems";
+import { menuitem } from "framer-motion/client";
+import toast from "react-hot-toast"; // Import toast for notifications
 
 const FoodItemModal = ({
   isOpen,
@@ -31,7 +33,7 @@ const FoodItemModal = ({
     name: "",
     description: "",
     price: "",
-    imageFile: null, // Now storing the file instead of URL
+    image: null, // Now storing the file instead of URL
     category: "",
   });
 
@@ -40,7 +42,7 @@ const FoodItemModal = ({
     if (initialData) {
       setFoodItem({
         ...initialData,
-        imageFile: null, // Reset file input when editing
+        image: null, // Reset file input when editing
       });
     } else {
       // Reset form when switching to add mode
@@ -48,7 +50,7 @@ const FoodItemModal = ({
         name: "",
         description: "",
         price: "",
-        imageFile: null,
+        image: null,
         category: "",
       });
     }
@@ -66,40 +68,70 @@ const FoodItemModal = ({
   const handleFileChange = (e) => {
     setFoodItem((prevState) => ({
       ...prevState,
-      imageFile: e.target.files[0], // Store the selected file
+      image: e.target.files[0], // Store the selected file
     }));
   };
 
   // Handle form submission (create or update)
+  // const handleSubmit = async () => {
+  //   const formData = new FormData();
+  //   formData.append("name", foodItem.name);
+  //   formData.append("description", foodItem.description);
+  //   formData.append("price", foodItem.price);
+  //   formData.append("category", foodItem.category);
+
+  //   if (foodItem.imageFile) {
+  //     formData.append("image", foodItem.imageFile); // Append image file if it exists
+  //   }
+
+  //   try {
+  //     let response;
+  //     if (initialData) {
+  //       // Update existing item
+  //       response = await updateMenuItem(initialData.id, formData);
+  //     } else {
+  //       // Create new item
+  //       response = await createMenuItem(formData);
+  //     }
+
+  //     if (response && response.image_url) {
+  //       formData.set("image_url", response.image_url); // Store the image URL after uploading
+  //     }
+
+  //     onSubmit(response); // Pass the response (with the image_url) to the parent component
+  //     onClose(); // Close modal on success
+  //   } catch (error) {
+  //     console.error("Error saving menu item:", error);
+  //   }
+  // };
+
   const handleSubmit = async () => {
-    const formData = new FormData();
-    formData.append("name", foodItem.name);
-    formData.append("description", foodItem.description);
-    formData.append("price", foodItem.price);
-    formData.append("category", foodItem.category);
-
-    if (foodItem.imageFile) {
-      formData.append("image", foodItem.imageFile); // Append image file if it exists
-    }
-
     try {
-      let response;
+      // let encodedUrl = ""; // Set an empty string as default
+
+      // if (initialData && initialData.image_url) {
+      //   encodedUrl = encodeURI(initialData.image_url);
+      // }
+
+      const foodItemPayload = {
+        ...foodItem,
+        // image_url: encodedUrl,
+      };
+
       if (initialData) {
-        // Update existing item
-        response = await updateMenuItem(initialData.id, formData);
+        // If editing, call updateMenuItem
+        const response = await updateMenuItem(initialData.id, foodItemPayload);
+        toast.success("Item updated successfully!"); // Success notification
       } else {
-        // Create new item
-        response = await createMenuItem(formData);
+        // If creating, call createMenuItem
+        const response = await createMenuItem(foodItemPayload);
+        toast.success("Item added successfully!"); // Success notification
       }
 
-      if (response.image_url) {
-        formData.append("image_url", response.image_url); // Store the image URL after uploading
-      }
-
-      onSubmit(response); // Pass the response (with the image_url) to the parent component
-      onClose(); // Close modal on success
+      onClose(); // Close the modal
     } catch (error) {
-      console.error("Error saving menu item:", error);
+      console.error("Error submitting item form:", error);
+      toast.error("Error saving item. Please try again."); // Error notification
     }
   };
 
@@ -160,8 +192,9 @@ const FoodItemModal = ({
           <FormControl mb={4}>
             <FormLabel>Image File</FormLabel>
             <Input
+              name="image"
               type="file"
-              accept="image/*"
+              // accept="image/*"
               onChange={handleFileChange} // Handle file input change
             />
           </FormControl>

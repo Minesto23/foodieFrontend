@@ -33,6 +33,7 @@ const RestaurantModal = ({
     contact_email: "",
     contact_phone: "",
     logo: null, // To handle logo file uploads
+    s3: "",
   });
 
   // Effect to load the initial data when editing an existing restaurant
@@ -52,6 +53,7 @@ const RestaurantModal = ({
         contact_email: "",
         contact_phone: "",
         logo: null,
+        s3: "",
       });
     }
   }, [initialData]);
@@ -73,17 +75,23 @@ const RestaurantModal = ({
       ...prevState,
       logo: e.target.files[0], // Store the file object when selected
     }));
-    console.log(e.target.files[0], "Terrenaitor");
+    // console.log(e.target.files[0], "Terrenaitor");
   };
 
   // Function to handle form submission (create or update restaurant)
   const handleSubmit = async () => {
     try {
+      const encodedS3Url = encodeURI(restaurantDetails.s3);
+
+      const restaurantPayload = {
+        ...restaurantDetails,
+        s3: encodedS3Url, // Ensure restaurant ID is sent
+      };
       if (initialData) {
         // If editing, call updateRestaurant
         const response = await updateRestaurant(
           initialData.id,
-          restaurantDetails
+          restaurantPayload
         );
         toast.success("Restaurant updated successfully!"); // Success notification
       } else {

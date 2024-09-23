@@ -14,7 +14,19 @@ export const getAllRestaurants = async () => {
 // Crear un nuevo restaurante
 export const createRestaurant = async (restaurantData) => {
   try {
-    const response = await Axios.post("/api/restaurants/", restaurantData);
+    const formData = new FormData();
+
+    // Agregar todos los campos al FormData, incluyendo el archivo (logo)
+    for (const key in restaurantData) {
+      if (restaurantData[key] !== null) {
+        formData.append(key, restaurantData[key]);
+      }
+    }
+    const response = await Axios.post("/api/restaurants/", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating restaurant:", error);

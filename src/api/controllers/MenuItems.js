@@ -14,7 +14,19 @@ export const getAllMenuItems = async () => {
 // Crear un nuevo elemento del menú
 export const createMenuItem = async (menuItemData) => {
   try {
-    const response = await Axios.post("/api/menu-items/", menuItemData);
+    const formData = new FormData();
+
+    // Agregar todos los campos al FormData, incluyendo el archivo (logo)
+    for (const key in menuItemData) {
+      if (menuItemData[key] !== null) {
+        formData.append(key, menuItemData[key]);
+      }
+    }
+    const response = await Axios.post("/api/menu-items/", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data", // Especificar multipart para enviar archivos
+      },
+    });
     return response.data;
   } catch (error) {
     console.error("Error creating menu item:", error);
