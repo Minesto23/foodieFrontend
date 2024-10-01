@@ -52,6 +52,12 @@ const MenuBar = ({
     FaWineBottle: FaWineBottle,
     FaBeer: FaBeer,
   };
+  let addCategoryButton = null;
+  if (selectedRestaurant?.name !== "Select a restaurant") {
+    addCategoryButton = (
+      <CategoryButton icon={FaPlus} label="More" onClick={onCategoryOpen} />
+    );
+  }
 
   return (
     <Box>
@@ -71,7 +77,7 @@ const MenuBar = ({
             isActive={selectedCategoryId === category.id} // Active if category is selected
           />
         ))}
-        <CategoryButton icon={FaPlus} label="More" onClick={onCategoryOpen} />
+        {addCategoryButton}
       </Flex>
 
       <CategoryModal

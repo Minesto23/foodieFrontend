@@ -1,7 +1,7 @@
 import React from "react";
 import { Text, Box, IconButton, Flex } from "@chakra-ui/react";
 import { MdEdit } from "react-icons/md";
-import { FaQrcode } from "react-icons/fa";
+// import { FaQrcode } from "react-icons/fa";
 
 const RestaurantName = ({ name, onEdit }) => {
   return (
@@ -10,18 +10,20 @@ const RestaurantName = ({ name, onEdit }) => {
         <Text fontSize="2xl" fontWeight="bold">
           {name}
         </Text>
-        {/* Pencil Icon to trigger modal */}
-        <IconButton
-          aria-label="Edit Restaurant"
-          icon={<MdEdit />}
-          size="lg"
-          variant="ghost"
-          ml={2} // Margin to the left of the text
-          onClick={onEdit} // This will trigger the modal
-        />
+        {/* Mostrar el botón de edición solo si el nombre no es "Select a restaurant" */}
+        {name !== "Select a restaurant" && (
+          <IconButton
+            aria-label="Edit Restaurant"
+            icon={<MdEdit />}
+            size="lg"
+            variant="ghost"
+            ml={2} // Margin to the left of the text
+            onClick={onEdit} // Esto activará el modal
+          />
+        )}
       </Flex>
 
-      {/* Orange underline */}
+      {/* Subrayado naranja */}
       <Box width="60px" height="3px" bg="orange.400" mt={1} mx="auto" />
     </Box>
   );

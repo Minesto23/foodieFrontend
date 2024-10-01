@@ -11,6 +11,7 @@ import {
   FormControl,
   FormLabel,
   Input,
+  Spinner,
 } from "@chakra-ui/react";
 import toast from "react-hot-toast"; // Import toast for notifications
 import {
@@ -23,8 +24,10 @@ const RestaurantModal = ({
   isOpen, // Controls if the modal is visible
   onClose, // Function to close the modal
   initialData = null, // Initial data for editing (if provided)
-  // refreshData, // Function to refresh the restaurant list after operations
 }) => {
+  // State to handle form submission loading state
+  const [loading, setLoading] = useState(false);
+
   // Initial state for restaurant form fields
   const [restaurantDetails, setRestaurantDetails] = useState({
     name: "",
@@ -33,7 +36,7 @@ const RestaurantModal = ({
     contact_email: "",
     contact_phone: "",
     logo: null, // To handle logo file uploads
-    s3: "",
+    s3: null,
   });
 
   // Effect to load the initial data when editing an existing restaurant
@@ -53,12 +56,10 @@ const RestaurantModal = ({
         contact_email: "",
         contact_phone: "",
         logo: null,
-        s3: "",
+        s3: null,
       });
     }
   }, [initialData]);
-
-  // console.log(restaurantDetails, "el senor almibape");
 
   // Function to handle form field changes (for both text inputs and logo file)
   const handleChange = (e) => {
@@ -75,49 +76,61 @@ const RestaurantModal = ({
       ...prevState,
       logo: e.target.files[0], // Store the file object when selected
     }));
-    // console.log(e.target.files[0], "Terrenaitor");
   };
 
   // Function to handle form submission (create or update restaurant)
   const handleSubmit = async () => {
+    // Show loading toast
+    toast.loading("Cargando datos, por favor espere...");
+    setLoading(true); // Start loading spinner
+
     try {
       const encodedS3Url = encodeURI(restaurantDetails.s3);
 
       const restaurantPayload = {
         ...restaurantDetails,
-        s3: encodedS3Url, // Ensure restaurant ID is sent
+        // s3: encodedS3Url, // Ensure restaurant ID is sent
       };
+
       if (initialData) {
         // If editing, call updateRestaurant
-        const response = await updateRestaurant(
-          initialData.id,
-          restaurantPayload
-        );
-        toast.success("Restaurant updated successfully!"); // Success notification
+        await updateRestaurant(initialData.id, restaurantPayload);
+        toast.success("¡Restaurante actualizado con éxito!"); // Success notification in Spanish
       } else {
         // If creating, call createRestaurant
-        await createRestaurant(restaurantDetails);
-        toast.success("Restaurant added successfully!"); // Success notification
+        await createRestaurant(restaurantPayload);
+        toast.success("¡Restaurante creado con éxito!"); // Success notification in Spanish
       }
-      // refreshData(); // Refresh the restaurant list after changes
+
       onClose(); // Close the modal
+
+      // Reload the page
+      // window.location.reload(); // This will refresh the entire page
     } catch (error) {
-      console.error("Error submitting restaurant form:", error);
-      toast.error("Error saving restaurant. Please try again."); // Error notification
+      console.error("Error al enviar el formulario del restaurante:", error);
+      toast.error(
+        "Error al guardar el restaurante. Inténtalo de nuevo.",
+        error
+      ); // Error notification in Spanish
+    } finally {
+      setLoading(false); // Stop loading spinner
     }
   };
 
   // Function to handle restaurant deletion
   const handleDelete = async () => {
+    setLoading(true); // Start loading spinner during deletion
     if (initialData) {
       try {
         await deleteRestaurant(initialData.id); // Delete the restaurant by ID
-        // refreshData(); // Refresh the restaurant list after deletion
         onClose(); // Close the modal
-        toast.success("Restaurant deleted successfully!"); // Success notification
+        toast.success("¡Restaurante eliminado con éxito!"); // Success notification in Spanish
+        // window.location.reload(); // Reload the page after deletion
       } catch (error) {
-        console.error("Error deleting restaurant:", error);
-        toast.error("Error deleting restaurant. Please try again."); // Error notification
+        console.error("Error al eliminar el restaurante:", error);
+        toast.error("Error al eliminar el restaurante. Inténtalo de nuevo."); // Error notification in Spanish
+      } finally {
+        setLoading(false); // Stop loading spinner
       }
     }
   };
@@ -127,63 +140,68 @@ const RestaurantModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
-          {initialData ? "Edit Restaurant" : "Add New Restaurant"}
+          {initialData ? "Editar Restaurante" : "Agregar Nuevo Restaurante"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           {/* Restaurant Name Input */}
           <FormControl mb={4}>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>Nombre del Restaurante</FormLabel>
             <Input
               name="name"
               value={restaurantDetails.name}
               onChange={handleChange}
-              placeholder="Restaurant Name"
+              placeholder="Nombre del Restaurante"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
           {/* Restaurant Location Input */}
           <FormControl mb={4}>
-            <FormLabel>Location</FormLabel>
+            <FormLabel>Ubicación</FormLabel>
             <Input
               name="location"
               value={restaurantDetails.location}
               onChange={handleChange}
-              placeholder="123 Main St"
+              placeholder="123 Calle Principal"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
           {/* Restaurant Opening Hours Input */}
           <FormControl mb={4}>
-            <FormLabel>Opening Hours</FormLabel>
+            <FormLabel>Horario de Apertura</FormLabel>
             <Input
               name="opening_hours"
               value={restaurantDetails.opening_hours}
               onChange={handleChange}
               placeholder="9AM - 9PM"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
           {/* Contact Email Input */}
           <FormControl mb={4}>
-            <FormLabel>Contact Email</FormLabel>
+            <FormLabel>Email de Contacto</FormLabel>
             <Input
               name="contact_email"
               type="email"
               value={restaurantDetails.contact_email}
               onChange={handleChange}
-              placeholder="contact@restaurant.com"
+              placeholder="contacto@restaurante.com"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
           {/* Contact Phone Input */}
           <FormControl mb={4}>
-            <FormLabel>Contact Phone</FormLabel>
+            <FormLabel>Teléfono de Contacto</FormLabel>
             <Input
               name="contact_phone"
               value={restaurantDetails.contact_phone}
               onChange={handleChange}
               placeholder="123-456-7890"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
@@ -193,7 +211,6 @@ const RestaurantModal = ({
             <Input
               name="logo"
               type="file"
-              // value={restaurantDetails.logo}
               onChange={handleFileChange} // Handle file uploads
             />
           </FormControl>
@@ -201,15 +218,27 @@ const RestaurantModal = ({
 
         <ModalFooter>
           {initialData && (
-            <Button colorScheme="red" mr={3} onClick={handleDelete}>
-              Delete
+            <Button
+              colorScheme="red"
+              mr={3}
+              onClick={handleDelete}
+              isLoading={loading} // Loading state for Delete
+              spinner={<Spinner size="sm" />}
+            >
+              Eliminar
             </Button>
           )}
-          <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
-            {initialData ? "Save Changes" : "Add Restaurant"}
+          <Button
+            colorScheme="blue"
+            mr={3}
+            onClick={handleSubmit}
+            isLoading={loading} // Loading state for Save
+            spinner={<Spinner size="sm" />}
+          >
+            {initialData ? "Guardar Cambios" : "Agregar Restaurante"}
           </Button>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
         </ModalFooter>
       </ModalContent>

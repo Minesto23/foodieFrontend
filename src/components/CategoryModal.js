@@ -158,6 +158,7 @@ const CategoryModal = ({
               value={category.name}
               onChange={handleChange}
               placeholder="Category Name"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
@@ -169,6 +170,7 @@ const CategoryModal = ({
               value={category.description}
               onChange={handleChange}
               placeholder="Description"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 

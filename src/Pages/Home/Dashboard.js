@@ -6,15 +6,16 @@ import {
   useColorMode,
   Text,
   IconButton,
+  useDisclosure, // Import useDisclosure to manage modal state
 } from "@chakra-ui/react";
 import MenuBar from "../../components/MenuBar";
 import RestaurantName from "../../components/RestaurantName";
 import FoodCard from "../../components/FoodCard";
 import EmptyFood from "../../components/EmptyFood";
 import FoodItemModal from "../../components/FoodItemModal";
-// import UpdateDeleteRestaurantModal from "../../components/RestaurantModalUpdateDelete";
 import RestaurantModal from "../../components/RestaurantModal";
 import CategoryModal from "../../components/CategoryModal";
+import HelpModal from "../../components/HelpModal"; // Import HelpModal
 import { MdEdit } from "react-icons/md";
 import { getAllCategories } from "../../api/controllers/Categories";
 import {
@@ -23,8 +24,7 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from "../../api/controllers/MenuItems";
-import { deleteRestaurant } from "../../api/controllers/Restaurants";
-import toast from "react-hot-toast";
+import toast from "react-hot-toast"; // Importación de toast para feedback de usuario
 
 const MainPage = ({ selectedRestaurant }) => {
   const { colorMode } = useColorMode();
@@ -41,9 +41,24 @@ const MainPage = ({ selectedRestaurant }) => {
 
   const [restaurantDetails, setRestaurantDetails] = useState({});
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
-  const [restaurants, setRestaurants] = useState([]); // Estado para manejar la lista de restaurantes
+
+  // Disclosure for HelpModal
+  const {
+    isOpen: isHelpModalOpen,
+    onOpen: onHelpModalOpen,
+    onClose: onHelpModalClose,
+  } = useDisclosure();
 
   useEffect(() => {
+    // Open HelpModal when MainPage loads
+    onHelpModalOpen();
+
+    // Si no hay un restaurante seleccionado, configurar el nombre por defecto
+    if (!selectedRestaurant) {
+      setRestaurantDetails({ name: "Select a restaurant" });
+      return;
+    }
+
     // Fetch categories and filter by selectedRestaurant
     const fetchCategories = async () => {
       try {
@@ -62,31 +77,39 @@ const MainPage = ({ selectedRestaurant }) => {
       setRestaurantDetails(selectedRestaurant);
       fetchCategories(); // Fetch categories when a restaurant is selected
     }
-  }, [selectedRestaurant]);
+  }, [selectedRestaurant, onHelpModalOpen]); // Add onHelpModalOpen as dependency to open modal
 
-  // Fetch menu items from API and filter by categories of the selected restaurant
+  // Fetch menu items and categories in a single effect
   useEffect(() => {
-    const fetchMenuItems = async () => {
+    const fetchCategoriesAndMenuItems = async () => {
+      if (!selectedRestaurant?.id) return;
+
       try {
-        const itemsData = await getAllMenuItems();
-        // Get the category IDs of the filtered categories
-        const categoryIds = categories.map((category) => category.id);
-        // Filter menu items based on the categories of the selected restaurant
-        const filteredMenuItems = itemsData.filter((item) =>
-          categoryIds.includes(item.category)
+        // Fetch categories
+        const categoryData = await getAllCategories();
+        const filteredCategories = categoryData.filter(
+          (category) => category.restaurant === selectedRestaurant.id
         );
-        setMenuItems(filteredMenuItems);
+        setCategories(filteredCategories);
+
+        // Fetch menu items
+        if (filteredCategories.length > 0) {
+          const itemsData = await getAllMenuItems();
+          const categoryIds = filteredCategories.map((category) => category.id);
+          const filteredMenuItems = itemsData.filter((item) =>
+            categoryIds.includes(item.category)
+          );
+          setMenuItems(filteredMenuItems);
+        }
       } catch (error) {
-        console.error("Error fetching menu items:", error);
+        console.error("Error fetching data:", error);
       }
     };
 
-    if (selectedRestaurant && categories.length > 0) {
-      fetchMenuItems(); // Fetch items when a restaurant and its categories are available
-    }
-  }, [selectedRestaurant, categories]);
+    fetchCategoriesAndMenuItems();
+  }, [selectedRestaurant]);
 
-  // Add or update food item via API
+  // Add or update food item via API with toast notification
   const handleNewFoodItem = async (newItem) => {
     try {
       if (selectedItem) {
@@ -97,25 +120,36 @@ const MainPage = ({ selectedRestaurant }) => {
             item.id === selectedItem.id ? updatedItem : item
           )
         );
+        toast.success("¡Elemento de comida actualizado con éxito!");
       } else {
         // Add new item via API
         const createdItem = await createMenuItem(newItem);
         setMenuItems((prevItems) => [...prevItems, createdItem]);
+        toast.success("¡Elemento de comida creado con éxito!");
       }
       setModalOpen(false);
+      refreshData(); // Refrescar datos sin recargar la página
     } catch (error) {
-      console.error("Error saving food item:", error);
+      console.error("Error al guardar el elemento de comida:", error);
+      toast.error(
+        "Error al guardar el elemento de comida. Inténtelo de nuevo."
+      );
     }
   };
 
-  // Handle item deletion via API
+  // Handle item deletion via API with toast notification
   const handleDeleteItem = async (id) => {
     try {
       await deleteMenuItem(id);
       setMenuItems((prevItems) => prevItems.filter((item) => item.id !== id));
+      toast.success("¡Elemento de comida eliminado con éxito!");
       setModalOpen(false);
+      refreshData(); // Refrescar datos sin recargar la página
     } catch (error) {
-      console.error("Error deleting food item:", error);
+      console.error("Error al eliminar el elemento de comida:", error);
+      toast.error(
+        "Error al eliminar el elemento de comida. Inténtelo de nuevo."
+      );
     }
   };
 
@@ -137,31 +171,37 @@ const MainPage = ({ selectedRestaurant }) => {
   const handleAddOrUpdateCategory = (newCategory) => {
     console.log("Add or Update Category:", newCategory);
     setCategoryOpen(false);
+    refreshData(); // Refrescar datos sin recargar la página
   };
 
   const handleDeleteCategory = (categoryId) => {
     console.log("Delete Category ID:", categoryId);
     setCategoryOpen(false);
+    refreshData(); // Refrescar datos sin recargar la página
   };
 
   const handleEditRestaurant = () => {
     setRestaurantModalOpen(true); // Open the restaurant modal
   };
+
   const handleEditItem = (item) => {
     setSelectedItem(item); // Set the selected item for editing
     setModalOpen(true); // Open the modal
   };
+
   const handleAddItem = () => {
     setSelectedItem(null); // Reset selected item for add mode
     setModalOpen(true); // Open the modal
   };
+
   const handleUpdateRestaurant = (updatedRestaurant) => {
     setRestaurantDetails(updatedRestaurant); // Update restaurant state
     setRestaurantModalOpen(false); // Close the modal
+    refreshData(); // Refrescar datos sin recargar la página
   };
 
+  // Refresh categories and menu items
   const refreshData = async () => {
-    // Refetch categories and menu items after modal actions
     const categoryData = await getAllCategories();
     const filteredCategories = categoryData.filter(
       (category) => category.restaurant === selectedRestaurant.id
@@ -174,21 +214,6 @@ const MainPage = ({ selectedRestaurant }) => {
       categoryIds.includes(item.category)
     );
     setMenuItems(filteredMenuItems);
-  };
-
-  const handleDeleteRestaurant = async (restaurantId) => {
-    try {
-      await deleteRestaurant(restaurantId); // Llamada a la API para eliminar el restaurante
-      // Actualiza el estado de los restaurantes después de eliminarlo
-      setRestaurants((prevRestaurants) =>
-        prevRestaurants.filter((restaurant) => restaurant.id !== restaurantId)
-      );
-      setRestaurantModalOpen(false); // Cerrar el modal después de la eliminación
-      toast.success("Restaurant deleted successfully!"); // Mostrar notificación de éxito
-    } catch (error) {
-      console.error("Error deleting restaurant:", error);
-      toast.error("Failed to delete restaurant. Please try again."); // Notificación de error
-    }
   };
 
   return (
@@ -243,7 +268,6 @@ const MainPage = ({ selectedRestaurant }) => {
                         <FoodCard
                           key={item.id} // Add a unique key prop here
                           imageUrl={item.image_url}
-                          // imageUrl="https://i.imgur.com/qF77EgD.jpeg"
                           category={item.name}
                           description={item.description}
                           price={item.price}
@@ -260,84 +284,51 @@ const MainPage = ({ selectedRestaurant }) => {
         <EmptyFood />
       )}
 
-      {/* Add Item Card */}
-      <Box
-        bg="white"
-        boxShadow="md"
-        borderRadius="lg"
-        p={4}
-        textAlign="center"
-        maxW="200px"
-        _hover={{
-          boxShadow: "lg",
-          transform: "scale(1.05)",
-          transition: "0.3s",
-        }}
-        cursor="pointer"
-        onClick={handleAddItem}
-        mt={8}
-        mx="auto"
-      >
+      {/* Add Item Card, visible only if there is at least one category */}
+      {categories.length > 0 && (
         <Box
-          bg="gray.200"
-          borderRadius="full"
-          width="80px"
-          height="80px"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
+          bg="white"
+          boxShadow="md"
+          borderRadius="lg"
+          p={4}
+          textAlign="center"
+          maxW="200px"
+          _hover={{
+            boxShadow: "lg",
+            transform: "scale(1.05)",
+            transition: "0.3s",
+          }}
+          cursor="pointer"
+          onClick={handleAddItem}
+          mt={8}
           mx="auto"
-          mb={4}
         >
-          <Text fontSize="4xl" color="gray.600">
-            +
+          <Box
+            bg="gray.200"
+            borderRadius="full"
+            width="80px"
+            height="80px"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            mx="auto"
+            mb={4}
+          >
+            <Text fontSize="4xl" color="gray.600">
+              +
+            </Text>
+          </Box>
+          <Text fontSize="lg" fontWeight="bold" color="gray.700">
+            Agregar Item
           </Text>
         </Box>
-        <Text fontSize="lg" fontWeight="bold" color="gray.700">
-          Agregar Item
-        </Text>
-      </Box>
+      )}
 
-      {/* Food Item Modal
-      <FoodItemModal
-        isOpen={isModalOpen}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleNewFoodItem}
-        onDelete={handleDeleteItem}
-        initialData={selectedItem}
-        categories={categories} // Pass the list of categories
-      />
-
-      {/* Modals for updating or deleting a restaurant */}
-      {/* <UpdateDeleteRestaurantModal
-        isOpen={isRestaurantModalOpen}
-        onClose={() => setRestaurantModalOpen(false)}
-        initialData={restaurantDetails} // Pass the restaurant details for editing
-        onSubmit={handleUpdateRestaurant} // Pass the function to update the restaurant
-        onDelete={handleDeleteRestaurant} // Pass the function to delete the restaurant
-      /> */}
-      {/* Modals for editing restaurant */}
-      {/* <RestaurantModal
-        isOpen={isRestaurantModalOpen}
-        onClose={() => setRestaurantModalOpen(false)}
-        onSubmit={handleUpdateRestaurant}
-        initialData={restaurantDetails}
-      />
-
-      {/* Category Edit Modal */}
-      {/* <CategoryModal
-        isOpen={isCategoryOpen}
-        onClose={() => setCategoryOpen(false)}
-        onSubmit={handleAddOrUpdateCategory}
-        onDelete={handleDeleteCategory}
-        initialData={selectedCategory}
-        selectedRestaurant={restaurantDetails} // Pass the selectedRestaurant here
-      /> */}
       <FoodItemModal
         isOpen={isModalOpen}
         onClose={() => {
           setModalOpen(false);
-          refreshData(); // Refrescar datos sin recargar la página completa
+          refreshData(selectedItem !== null); // Refrescar datos solo si se agregó o editó un ítem
         }}
         onSubmit={handleNewFoodItem}
         onDelete={handleDeleteItem}
@@ -366,6 +357,9 @@ const MainPage = ({ selectedRestaurant }) => {
         initialData={selectedCategory}
         selectedRestaurant={restaurantDetails}
       />
+
+      {/* Help Modal */}
+      <HelpModal isOpen={isHelpModalOpen} onClose={onHelpModalClose} />
     </Box>
   );
 };

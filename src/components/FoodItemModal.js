@@ -18,7 +18,6 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from "../api/controllers/MenuItems";
-import { menuitem } from "framer-motion/client";
 import toast from "react-hot-toast"; // Import toast for notifications
 
 const FoodItemModal = ({
@@ -73,49 +72,10 @@ const FoodItemModal = ({
   };
 
   // Handle form submission (create or update)
-  // const handleSubmit = async () => {
-  //   const formData = new FormData();
-  //   formData.append("name", foodItem.name);
-  //   formData.append("description", foodItem.description);
-  //   formData.append("price", foodItem.price);
-  //   formData.append("category", foodItem.category);
-
-  //   if (foodItem.imageFile) {
-  //     formData.append("image", foodItem.imageFile); // Append image file if it exists
-  //   }
-
-  //   try {
-  //     let response;
-  //     if (initialData) {
-  //       // Update existing item
-  //       response = await updateMenuItem(initialData.id, formData);
-  //     } else {
-  //       // Create new item
-  //       response = await createMenuItem(formData);
-  //     }
-
-  //     if (response && response.image_url) {
-  //       formData.set("image_url", response.image_url); // Store the image URL after uploading
-  //     }
-
-  //     onSubmit(response); // Pass the response (with the image_url) to the parent component
-  //     onClose(); // Close modal on success
-  //   } catch (error) {
-  //     console.error("Error saving menu item:", error);
-  //   }
-  // };
-
   const handleSubmit = async () => {
     try {
-      // let encodedUrl = ""; // Set an empty string as default
-
-      // if (initialData && initialData.image_url) {
-      //   encodedUrl = encodeURI(initialData.image_url);
-      // }
-
       const foodItemPayload = {
         ...foodItem,
-        // image_url: encodedUrl,
       };
 
       if (initialData) {
@@ -164,6 +124,7 @@ const FoodItemModal = ({
               value={foodItem.name}
               onChange={handleChange}
               placeholder="Item Name"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
@@ -174,6 +135,7 @@ const FoodItemModal = ({
               value={foodItem.description}
               onChange={handleChange}
               placeholder="Description"
+              maxLength={100} // Limiting the input to 100 characters
             />
           </FormControl>
 
@@ -194,7 +156,6 @@ const FoodItemModal = ({
             <Input
               name="image"
               type="file"
-              // accept="image/*"
               onChange={handleFileChange} // Handle file input change
             />
           </FormControl>
