@@ -9,7 +9,6 @@ import {
   Link,
   Image,
   IconButton,
-  useDisclosure,
   Collapse,
   Menu,
   MenuButton,
@@ -28,49 +27,45 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import CreateRestaurantModal from "./RestaurantModalCreate"; // Import the RestaurantModal component
 import HelpModal from "./HelpModal"; // Assuming HelpModal is a separate component
-import { getAllRestaurants } from "../api/controllers/Restaurants"; // Import your controllers
-import ExportModal from "./ExportModal"; // Import the ExportModal
+// Import your controllers
+import ExportModal from "./ExportModal";
+// hook personalizado de restaurants
+import { UseRestaurant } from "../hooks/UseRestaurant";
 
 const Header = ({ onSelectRestaurant }) => {
+  const { restaurants, fetchAllRestaurants } = UseRestaurant();
+
   const { colorMode, toggleColorMode } = useColorMode();
-  const { isOpen, onToggle } = useDisclosure(); // For mobile menu toggle
-  const {
-    isOpen: isRestaurantModalOpen,
-    onOpen: openRestaurantModal,
-    onClose: closeRestaurantModal,
-  } = useDisclosure(); // Restaurant modal
-  const {
-    isOpen: isHelpModalOpen,
-    onOpen: openHelpModal,
-    onClose: closeHelpModal,
-  } = useDisclosure(); // Help modal
-  const {
-    isOpen: isExportModalOpen,
-    onOpen: openExportModal,
-    onClose: closeExportModal,
-  } = useDisclosure(); // Export modal
+
+  // Estado para el menú móvil
+  const [isOpen, setIsOpen] = useState(false);
+  const onToggle = () => setIsOpen((prevState) => !prevState);
+
+  // Estado para el modal de restaurantes
+  const [isRestaurantModalOpen, setIsRestaurantModalOpen] = useState(false);
+  const openRestaurantModal = () => setIsRestaurantModalOpen(true);
+  const closeRestaurantModal = () => setIsRestaurantModalOpen(false);
+
+  // Estado para el modal de ayuda
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const openHelpModal = () => setIsHelpModalOpen(true);
+  const closeHelpModal = () => setIsHelpModalOpen(false);
+
+  // Estado para el modal de exportar
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const openExportModal = () => setIsExportModalOpen(true);
+  const closeExportModal = () => setIsExportModalOpen(false);
+
   const location = useLocation();
   const navigate = useNavigate();
 
-  const [restaurants, setRestaurants] = useState([]);
-  const [selectedRestaurant, setSelectedRestaurant] = useState(null); // State for selected restaurant
+  // Estado para el restaurante seleccionado
+  const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
-  // Fetch restaurants when the component mounts
+  // useEffect que se ejecuta cada vez que los modales se abren o cierran
   useEffect(() => {
-    const fetchRestaurants = async () => {
-      try {
-        const data = await getAllRestaurants();
-        setRestaurants(data);
-        if (data.length > 0) {
-          setSelectedRestaurant(data[0]);
-          onSelectRestaurant(data[0]); // Pass the first restaurant to the parent
-        }
-      } catch (error) {
-        console.error("Error fetching restaurants:", error);
-      }
-    };
-    fetchRestaurants();
-  }, [onSelectRestaurant]);
+    fetchAllRestaurants();
+  }, [isRestaurantModalOpen, isHelpModalOpen, isExportModalOpen]);
 
   // Handle restaurant selection from the dropdown
   const handleSelectRestaurant = (restaurant) => {
@@ -86,7 +81,7 @@ const Header = ({ onSelectRestaurant }) => {
   // Handle adding a new restaurant
   const handleAddRestaurant = (restaurantDetails) => {
     console.log("New Restaurant Details:", restaurantDetails);
-    // You can add the logic here to handle the addition of the restaurant
+    // Aquí puedes agregar la lógica para manejar la adición de un nuevo restaurante
   };
 
   return (
@@ -95,7 +90,7 @@ const Header = ({ onSelectRestaurant }) => {
         {/* Logo */}
         <Flex alignItems="center" pl={10}>
           <Image
-            src="/logo192.png" // Add your logo path here
+            src="/logo192.png" // Añade la ruta de tu logo aquí
             alt="Logo"
             boxSize={{ base: "30px", md: "40px" }}
             objectFit="cover"
@@ -106,7 +101,7 @@ const Header = ({ onSelectRestaurant }) => {
           </Text>
         </Flex>
 
-        {/* Desktop Navigation */}
+        {/* Navegación en Desktop */}
         <Flex display={{ base: "none", md: "flex" }} alignItems="center">
           <Stack direction="row" spacing={7}>
             {location.pathname === "/home" ? (
@@ -114,7 +109,7 @@ const Header = ({ onSelectRestaurant }) => {
                 <Button onClick={openExportModal} colorScheme="red">
                   Export
                 </Button>
-                {/* Restaurant dropdown menu */}
+                {/* Menú desplegable de restaurantes */}
                 <Menu>
                   <MenuButton
                     as={Button}
@@ -124,7 +119,7 @@ const Header = ({ onSelectRestaurant }) => {
                     Restaurantes
                   </MenuButton>
                   <MenuList>
-                    {/* Dynamically render restaurant names */}
+                    {/* Renderizado dinámico de los nombres de los restaurantes */}
                     {restaurants.length > 0 ? (
                       restaurants.map((restaurant) => (
                         <MenuItem
@@ -181,7 +176,7 @@ const Header = ({ onSelectRestaurant }) => {
           </Stack>
         </Flex>
 
-        {/* Mobile Menu Toggle */}
+        {/* Menú móvil */}
         <Flex display={{ base: "flex", md: "none" }}>
           <IconButton
             size="md"
@@ -193,13 +188,13 @@ const Header = ({ onSelectRestaurant }) => {
         </Flex>
       </Flex>
 
-      {/* Mobile Menu Links */}
+      {/* Enlaces del menú móvil */}
       <Collapse in={isOpen} animateOpacity>
         <Box pb={4} display={{ md: "none" }}>
           <Stack as="nav" spacing={4}>
             {location.pathname === "/home" ? (
               <>
-                {/* Restaurant dropdown for mobile */}
+                {/* Menú desplegable de restaurantes para móvil */}
                 <Menu>
                   <MenuButton
                     as={Button}
@@ -254,21 +249,17 @@ const Header = ({ onSelectRestaurant }) => {
         </Box>
       </Collapse>
 
-      {/* Restaurant Modal for adding a restaurant */}
+      {/* Modales */}
       <CreateRestaurantModal
         isOpen={isRestaurantModalOpen}
         onClose={closeRestaurantModal}
         onCreateSuccess={handleAddRestaurant}
       />
-
-      {/* Help Modal */}
       <HelpModal isOpen={isHelpModalOpen} onClose={closeHelpModal} />
-
-      {/* Export Modal */}
       <ExportModal
         isOpen={isExportModalOpen}
         onClose={closeExportModal}
-        restaurantId={selectedRestaurant?.id} // Pass the selected restaurant ID
+        restaurantId={selectedRestaurant?.id}
       />
     </Box>
   );

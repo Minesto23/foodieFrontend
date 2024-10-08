@@ -4,6 +4,8 @@ import Axios from "../Axios";
 export const getAllRestaurants = async () => {
   try {
     const response = await Axios.get("/api/restaurants/");
+    console.log(response,'controller');
+    
     return response.data;
   } catch (error) {
     console.error("Error fetching restaurants:", error);
