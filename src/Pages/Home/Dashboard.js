@@ -53,7 +53,9 @@ const MainPage = ({ selectedRestaurant }) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState(null); // Selected category for filtering
   // const [isCategoryOpen, setCategoryOpen] = useState(false);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const openCategoryModal = () => setIsCategoryModalOpen(!isCategoryModalOpen);
+  console.log(isCategoryModalOpen);
+
+  const openCategoryModal = () => setIsCategoryModalOpen(prevState => !prevState);
   // const closeCategoryModal = () => setIsCategoryModalOpen(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
@@ -164,7 +166,7 @@ const MainPage = ({ selectedRestaurant }) => {
         selectedCategoryId={selectedCategoryId} // Pass selected category ID
         onCategorySelect={handleCategorySelect} // Pass category selection handler
         selectedRestaurant={selectedRestaurant} // Pass selectedRestaurant
-        IsCategoryModalOpen={isCategoryModalOpen}
+        Open={isCategoryModalOpen}
         openCategoryModal={openCategoryModal}
       />
 
