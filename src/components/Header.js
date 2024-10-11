@@ -65,7 +65,12 @@ const Header = ({ onSelectRestaurant }) => {
   // useEffect que se ejecuta cada vez que los modales se abren o cierran
   useEffect(() => {
     fetchAllRestaurants();
-  }, [isRestaurantModalOpen, isHelpModalOpen, isExportModalOpen]);
+  }, [
+    isRestaurantModalOpen,
+    isHelpModalOpen,
+    isExportModalOpen,
+    fetchAllRestaurants,
+  ]);
 
   // Handle restaurant selection from the dropdown
   const handleSelectRestaurant = (restaurant) => {

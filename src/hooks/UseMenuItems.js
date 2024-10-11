@@ -1,14 +1,14 @@
-import { useContext, useCallback } from 'react';
-import { MainContext } from '../context/MainContext';
+import { useContext, useCallback } from "react";
+import { MainContext } from "../context/MainContext";
 import {
   getAllMenuItems,
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
-  getCategoryById, // Import the new function to fetch a category by ID
-} from '../api/controllers/MenuItems';
+} from "../api/controllers/MenuItems";
+import { getCategoryById } from "../api/controllers/Categories"; // Import from Categories controller
 
-export const useMenuItems = () => {
+export const UseMenuItems = () => {
   const { menuItems, setMenuItems, loading, setLoading } =
     useContext(MainContext);
 
@@ -19,27 +19,27 @@ export const useMenuItems = () => {
 
       // Fetch the category name for each menu item
       const menuItemsWithCategoryNames = await Promise.all(
-        data.map(async menuItem => {
-          const category = await getCategoryById(menuItem.category);
+        data.map(async (menuItem) => {
+          const category = await getCategoryById(menuItem.category); // Fetch category by ID
           return { ...menuItem, categoryName: category.name };
         })
       );
 
       setMenuItems(menuItemsWithCategoryNames);
     } catch (error) {
-      console.error('Error fetching menu items:', error);
+      console.error("Error fetching menu items:", error);
     } finally {
       setLoading(false);
     }
   }, [setLoading, setMenuItems]);
 
   const addMenuItem = useCallback(
-    async newItem => {
+    async (newItem) => {
       try {
         const data = await createMenuItem(newItem);
-        setMenuItems(prevItems => [...prevItems, data]);
+        setMenuItems((prevItems) => [...prevItems, data]);
       } catch (error) {
-        console.error('Error creating menu item:', error);
+        console.error("Error creating menu item:", error);
       }
     },
     [setMenuItems]
@@ -49,23 +49,23 @@ export const useMenuItems = () => {
     async (id, updatedData) => {
       try {
         const data = await updateMenuItem(id, updatedData);
-        setMenuItems(prevItems =>
-          prevItems.map(item => (item.id === id ? data : item))
+        setMenuItems((prevItems) =>
+          prevItems.map((item) => (item.id === id ? data : item))
         );
       } catch (error) {
-        console.error('Error updating menu item:', error);
+        console.error("Error updating menu item:", error);
       }
     },
     [setMenuItems]
   );
 
   const removeMenuItem = useCallback(
-    async id => {
+    async (id) => {
       try {
         await deleteMenuItem(id);
-        setMenuItems(prevItems => prevItems.filter(item => item.id !== id));
+        setMenuItems((prevItems) => prevItems.filter((item) => item.id !== id));
       } catch (error) {
-        console.error('Error deleting menu item:', error);
+        console.error("Error deleting menu item:", error);
       }
     },
     [setMenuItems]
@@ -81,4 +81,4 @@ export const useMenuItems = () => {
   };
 };
 
-export default useMenuItems;
+export default UseMenuItems;

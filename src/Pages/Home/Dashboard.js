@@ -17,97 +17,61 @@ import RestaurantModal from "../../components/RestaurantModal";
 import CategoryModal from "../../components/CategoryModal";
 import HelpModal from "../../components/HelpModal"; // Import HelpModal
 import { MdEdit } from "react-icons/md";
-import { getAllCategories } from "../../api/controllers/Categories";
 import {
-  getAllMenuItems,
   createMenuItem,
   updateMenuItem,
   deleteMenuItem,
 } from "../../api/controllers/MenuItems";
 import toast from "react-hot-toast"; // Importación de toast para feedback de usuario
+// customized hook
+import { UseCategories } from "../../hooks/UseMenuCategories";
 
 const MainPage = ({ selectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
 
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [selectedItem, setSelectedItem] = useState(null); // Selected item for editing
-  const [selectedCategoryId, setSelectedCategoryId] = useState(null); // Selected category for filtering
+  // Modal disclosure for FoodItemModal
+  const {
+    isOpen: isModalOpen,
+    onOpen: openModal,
+    onClose: closeModal,
+  } = useDisclosure();
 
-  const [isCategoryOpen, setCategoryOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const [menuItems, setMenuItems] = useState([]); // State to manage menu items from API
-
-  const [restaurantDetails, setRestaurantDetails] = useState({});
-  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
-
-  // Disclosure for HelpModal
+  // Modal disclosure for HelpModal
   const {
     isOpen: isHelpModalOpen,
     onOpen: onHelpModalOpen,
     onClose: onHelpModalClose,
   } = useDisclosure();
 
-  useEffect(() => {
-    // Open HelpModal when MainPage loads
-    onHelpModalOpen();
+  // const { categories, fetchAllCategories } = UseCategories();
+  const { menuCategories: categories, fetchAllCategories } =
+    UseCategories(selectedRestaurant);
+  const [menuItems, setMenuItems] = useState([]); // State to manage menu items from API
+  const [restaurantDetails, setRestaurantDetails] = useState({});
+  const [selectedItem, setSelectedItem] = useState(null); // Selected item for editing
+  const [selectedCategoryId, setSelectedCategoryId] = useState(null); // Selected category for filtering
+  // const [isCategoryOpen, setCategoryOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const openCategoryModal = () => setIsCategoryModalOpen(!isCategoryModalOpen);
+  // const closeCategoryModal = () => setIsCategoryModalOpen(false);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
 
-    // Si no hay un restaurante seleccionado, configurar el nombre por defecto
+  useEffect(() => {
     if (!selectedRestaurant) {
       setRestaurantDetails({ name: "Select a restaurant" });
       return;
     }
 
-    // Fetch categories and filter by selectedRestaurant
-    const fetchCategories = async () => {
-      try {
-        const categoryData = await getAllCategories();
-        // Filter categories based on the selected restaurant
-        const filteredCategories = categoryData.filter(
-          (category) => category.restaurant === selectedRestaurant.id
-        );
-        setCategories(filteredCategories);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-      }
-    };
+    setRestaurantDetails(selectedRestaurant);
+    fetchAllCategories(); // Fetch categories when a restaurant is selected
+  }, [selectedRestaurant, fetchAllCategories, isCategoryModalOpen]);
 
-    if (selectedRestaurant) {
-      setRestaurantDetails(selectedRestaurant);
-      fetchCategories(); // Fetch categories when a restaurant is selected
-    }
-  }, [selectedRestaurant, onHelpModalOpen]); // Add onHelpModalOpen as dependency to open modal
-
-  // Fetch menu items and categories in a single effect
+  // Use another useEffect to log categories after they are updated
   useEffect(() => {
-    const fetchCategoriesAndMenuItems = async () => {
-      if (!selectedRestaurant?.id) return;
-
-      try {
-        // Fetch categories
-        const categoryData = await getAllCategories();
-        const filteredCategories = categoryData.filter(
-          (category) => category.restaurant === selectedRestaurant.id
-        );
-        setCategories(filteredCategories);
-
-        // Fetch menu items
-        if (filteredCategories.length > 0) {
-          const itemsData = await getAllMenuItems();
-          const categoryIds = filteredCategories.map((category) => category.id);
-          const filteredMenuItems = itemsData.filter((item) =>
-            categoryIds.includes(item.category)
-          );
-          setMenuItems(filteredMenuItems);
-        }
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchCategoriesAndMenuItems();
-  }, [selectedRestaurant]);
+    console.log(categories); // This will now log categories whenever they are updated
+  }, [categories]);
 
   // Add or update food item via API with toast notification
   const handleNewFoodItem = async (newItem) => {
@@ -127,8 +91,7 @@ const MainPage = ({ selectedRestaurant }) => {
         setMenuItems((prevItems) => [...prevItems, createdItem]);
         toast.success("¡Elemento de comida creado con éxito!");
       }
-      setModalOpen(false);
-      refreshData(); // Refrescar datos sin recargar la página
+      closeModal();
     } catch (error) {
       console.error("Error al guardar el elemento de comida:", error);
       toast.error(
@@ -143,8 +106,7 @@ const MainPage = ({ selectedRestaurant }) => {
       await deleteMenuItem(id);
       setMenuItems((prevItems) => prevItems.filter((item) => item.id !== id));
       toast.success("¡Elemento de comida eliminado con éxito!");
-      setModalOpen(false);
-      refreshData(); // Refrescar datos sin recargar la página
+      closeModal();
     } catch (error) {
       console.error("Error al eliminar el elemento de comida:", error);
       toast.error(
@@ -165,55 +127,22 @@ const MainPage = ({ selectedRestaurant }) => {
 
   const handleEditCategory = (category) => {
     setSelectedCategory(category);
-    setCategoryOpen(true);
-  };
-
-  const handleAddOrUpdateCategory = (newCategory) => {
-    console.log("Add or Update Category:", newCategory);
-    setCategoryOpen(false);
-    refreshData(); // Refrescar datos sin recargar la página
-  };
-
-  const handleDeleteCategory = (categoryId) => {
-    console.log("Delete Category ID:", categoryId);
-    setCategoryOpen(false);
-    refreshData(); // Refrescar datos sin recargar la página
-  };
-
-  const handleEditRestaurant = () => {
-    setRestaurantModalOpen(true); // Open the restaurant modal
-  };
-
-  const handleEditItem = (item) => {
-    setSelectedItem(item); // Set the selected item for editing
-    setModalOpen(true); // Open the modal
+    setIsCategoryModalOpen(true);
   };
 
   const handleAddItem = () => {
     setSelectedItem(null); // Reset selected item for add mode
-    setModalOpen(true); // Open the modal
+    openModal(); // Open the modal
+  };
+
+  const handleEditItem = (item) => {
+    setSelectedItem(item); // Set the selected item for editing
+    openModal(); // Open the modal
   };
 
   const handleUpdateRestaurant = (updatedRestaurant) => {
     setRestaurantDetails(updatedRestaurant); // Update restaurant state
     setRestaurantModalOpen(false); // Close the modal
-    refreshData(); // Refrescar datos sin recargar la página
-  };
-
-  // Refresh categories and menu items
-  const refreshData = async () => {
-    const categoryData = await getAllCategories();
-    const filteredCategories = categoryData.filter(
-      (category) => category.restaurant === selectedRestaurant.id
-    );
-    setCategories(filteredCategories);
-
-    const itemsData = await getAllMenuItems();
-    const categoryIds = filteredCategories.map((category) => category.id);
-    const filteredMenuItems = itemsData.filter((item) =>
-      categoryIds.includes(item.category)
-    );
-    setMenuItems(filteredMenuItems);
   };
 
   return (
@@ -226,15 +155,17 @@ const MainPage = ({ selectedRestaurant }) => {
       {/* Restaurant Name with edit functionality */}
       <RestaurantName
         name={restaurantDetails?.name || "Select a restaurant"}
-        onEdit={handleEditRestaurant}
+        onEdit={() => setRestaurantModalOpen(true)}
       />
 
       {/* Menu Bar */}
       <MenuBar
-        categories={categories}
+        categories={categories || []} // Default to an empty array if categories is undefined
         selectedCategoryId={selectedCategoryId} // Pass selected category ID
         onCategorySelect={handleCategorySelect} // Pass category selection handler
         selectedRestaurant={selectedRestaurant} // Pass selectedRestaurant
+        IsCategoryModalOpen={isCategoryModalOpen}
+        openCategoryModal={openCategoryModal}
       />
 
       {/* Conditional rendering of FoodCards or EmptyFood */}
@@ -285,7 +216,7 @@ const MainPage = ({ selectedRestaurant }) => {
       )}
 
       {/* Add Item Card, visible only if there is at least one category */}
-      {categories.length > 0 && (
+      {categories?.length > 0 && (
         <Box
           bg="white"
           boxShadow="md"
@@ -326,10 +257,7 @@ const MainPage = ({ selectedRestaurant }) => {
 
       <FoodItemModal
         isOpen={isModalOpen}
-        onClose={() => {
-          setModalOpen(false);
-          refreshData(selectedItem !== null); // Refrescar datos solo si se agregó o editó un ítem
-        }}
+        onClose={closeModal}
         onSubmit={handleNewFoodItem}
         onDelete={handleDeleteItem}
         initialData={selectedItem}
@@ -338,25 +266,17 @@ const MainPage = ({ selectedRestaurant }) => {
 
       <RestaurantModal
         isOpen={isRestaurantModalOpen}
-        onClose={() => {
-          setRestaurantModalOpen(false);
-          refreshData(); // Refrescar datos
-        }}
+        onClose={() => setRestaurantModalOpen(false)}
         onSubmit={handleUpdateRestaurant}
         initialData={restaurantDetails}
       />
 
-      <CategoryModal
-        isOpen={isCategoryOpen}
-        onClose={() => {
-          setCategoryOpen(false);
-          refreshData(); // Refrescar datos
-        }}
-        onSubmit={handleAddOrUpdateCategory}
-        onDelete={handleDeleteCategory}
+      {/* <CategoryModal
+        isOpen={isCategoryModalOpen}
+        onClose={closeCategoryModal}
         initialData={selectedCategory}
         selectedRestaurant={restaurantDetails}
-      />
+      /> */}
 
       {/* Help Modal */}
       <HelpModal isOpen={isHelpModalOpen} onClose={onHelpModalClose} />

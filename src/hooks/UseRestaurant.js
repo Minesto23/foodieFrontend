@@ -1,12 +1,12 @@
-import { useContext, useCallback, useState } from "react";
-import { MainContext } from "../context/MainContext";
+import { useCallback, useState } from "react";
+// import { MainContext } from "../context/MainContext";
 import {
   getAllRestaurants,
-  createRestaurant,
-  // updateRestaurant,
-  deleteRestaurant,
+  // createRestaurant,
+  // // updateRestaurant,
+  // deleteRestaurant,
 } from "../api/controllers/Restaurants";
-import axios from "../api/Axios"; // Asumiendo que Axios está configurado para tu API
+// import axios from "../api/Axios"; // Asumiendo que Axios está configurado para tu API
 
 // export const useRestaurants = () => {
 //   // const { loading, setLoading } = useContext(MainContext);
@@ -78,7 +78,7 @@ import axios from "../api/Axios"; // Asumiendo que Axios está configurado para 
 // };
 
 export const UseRestaurant = () => {
-  const [restaurants, setRestaurants] = useState([]); 
+  const [restaurants, setRestaurants] = useState([]);
   const [loading, setLoading] = useState(false);
 
   const fetchAllRestaurants = useCallback(async () => {

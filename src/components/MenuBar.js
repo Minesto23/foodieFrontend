@@ -28,13 +28,9 @@ const MenuBar = ({
   selectedCategoryId,
   onCategorySelect,
   selectedRestaurant,
+  isCategoryModalOpen,
+  openCategoryModal,
 }) => {
-  const {
-    isOpen: isCategoryOpen,
-    onOpen: onCategoryOpen,
-    onClose: onCategoryClose,
-  } = useDisclosure();
-
   const iconMapping = {
     FaDrumstickBite: FaDrumstickBite,
     FaAppleAlt: FaAppleAlt,
@@ -53,9 +49,11 @@ const MenuBar = ({
     FaBeer: FaBeer,
   };
   let addCategoryButton = null;
+  console.log(openCategoryModal);
+
   if (selectedRestaurant?.name !== "Select a restaurant") {
     addCategoryButton = (
-      <CategoryButton icon={FaPlus} label="More" onClick={onCategoryOpen} />
+      <CategoryButton icon={FaPlus} label="More" onClick={openCategoryModal} />
     );
   }
 
@@ -81,8 +79,8 @@ const MenuBar = ({
       </Flex>
 
       <CategoryModal
-        isOpen={isCategoryOpen}
-        onClose={onCategoryClose}
+        isOpen={isCategoryModalOpen}
+        // onClose={onCategoryClose}
         onSubmit={(newCategory) => console.log(newCategory)}
         selectedRestaurant={selectedRestaurant} // Pass the selectedRestaurant here
       />
