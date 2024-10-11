@@ -1,5 +1,5 @@
-import { useContext, useCallback } from "react";
-import { MainContext } from "../context/MainContext";
+import { useState, useCallback } from "react";
+// import { MainContext } from "../context/MainContext";
 import {
   getAllMenuItems,
   createMenuItem,
@@ -9,8 +9,8 @@ import {
 import { getCategoryById } from "../api/controllers/Categories"; // Import from Categories controller
 
 export const UseMenuItems = () => {
-  const { menuItems, setMenuItems, loading, setLoading } =
-    useContext(MainContext);
+  const [menuItems, setMenuItems] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const fetchAllMenuItems = useCallback(async () => {
     setLoading(true);
