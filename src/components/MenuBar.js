@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Box, Flex } from "@chakra-ui/react";
 import CategoryButton from "./CategoryButton";
 import { FaUtensils, FaPlus } from "react-icons/fa";
-import { useDisclosure } from "@chakra-ui/react";
 import CategoryModal from "./CategoryModal";
 import {
   FaDrumstickBite,
@@ -21,16 +20,17 @@ import {
   FaWineBottle,
   FaBeer,
 } from "react-icons/fa";
-// import { RiDrinks2Fill } from "react-icons/ri";
 
 const MenuBar = ({
   categories,
   selectedCategoryId,
   onCategorySelect,
   selectedRestaurant,
-  Open,
-  openCategoryModal,
+  client,
 }) => {
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false); // Controlar el estado del modal
+
+  // Mapeo de íconos
   const iconMapping = {
     FaDrumstickBite: FaDrumstickBite,
     FaAppleAlt: FaAppleAlt,
@@ -48,21 +48,33 @@ const MenuBar = ({
     FaWineBottle: FaWineBottle,
     FaBeer: FaBeer,
   };
-  let addCategoryButton = null;
-  console.log(openCategoryModal, "estado");
 
-  if (selectedRestaurant?.name !== "Select a restaurant") {
-    addCategoryButton = <CategoryButton icon={FaPlus} label="More" onClick={openCategoryModal} />;
+  // Botón para agregar categoría
+  let addCategoryButton = null;
+  if (selectedRestaurant?.name !== "Select a restaurant" && !client) {
+    addCategoryButton = (
+      <CategoryButton
+        icon={FaPlus}
+        label="More"
+        onClick={() => setIsCategoryModalOpen(true)} // Abrir el modal
+      />
+    );
   }
 
   return (
     <Box>
-      <Flex justifyContent="center" mt={6} gap={6} wrap="wrap">
+      <Flex
+        justifyContent="center"
+        mt={8}
+        gap={6}
+        wrap="wrap"
+        style={{ margin: "40px 200px " }}
+      >
         <CategoryButton
           icon={FaUtensils}
           label="All"
           onClick={() => onCategorySelect(null)}
-          isActive={!selectedCategoryId} // Active if no category is selected
+          isActive={!selectedCategoryId} // Activo si no hay ninguna categoría seleccionada
         />
         {categories.map((category, index) => (
           <CategoryButton
@@ -70,17 +82,18 @@ const MenuBar = ({
             icon={iconMapping[category.icon_name]}
             label={category.name}
             onClick={() => onCategorySelect(category.id)}
-            isActive={selectedCategoryId === category.id} // Active if category is selected
+            isActive={selectedCategoryId === category.id} // Activo si la categoría está seleccionada
           />
         ))}
         {addCategoryButton}
       </Flex>
 
+      {/* Modal de categoría */}
       <CategoryModal
-        isOpen={Open}
-        onClose={openCategoryModal}
-        onSubmit={(newCategory) => console.log(newCategory)}
-        selectedRestaurant={selectedRestaurant} // Pass the selectedRestaurant here
+        isOpen={isCategoryModalOpen} // Controlar si el modal está abierto
+        onClose={() => setIsCategoryModalOpen(false)} // Cerrar el modal
+        onSubmit={(newCategory) => console.log(newCategory)} // Manejar la nueva categoría
+        selectedRestaurant={selectedRestaurant} // Pasar el restaurante seleccionado
       />
     </Box>
   );

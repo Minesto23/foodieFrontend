@@ -18,24 +18,23 @@ import {
 import {
   MoonIcon,
   SunIcon,
-  HamburgerIcon,
-  CloseIcon,
   ChevronDownIcon,
   AddIcon,
   QuestionIcon,
 } from "@chakra-ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
-import CreateRestaurantModal from "./RestaurantModalCreate"; // Import the RestaurantModal component
-import HelpModal from "./HelpModal"; // Assuming HelpModal is a separate component
-// Import your controllers
+import CreateRestaurantModal from "./RestaurantModalCreate";
+import HelpModal from "./HelpModal";
 import ExportModal from "./ExportModal";
-// hook personalizado de restaurants
 import { UseRestaurant } from "../hooks/UseRestaurant";
 
 const Header = ({ onSelectRestaurant }) => {
   const { restaurants, fetchAllRestaurants } = UseRestaurant();
-
   const { colorMode, toggleColorMode } = useColorMode();
+
+  // Obtener la ruta actual usando useLocation
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Estado para el menú móvil
   const [isOpen, setIsOpen] = useState(false);
@@ -56,13 +55,10 @@ const Header = ({ onSelectRestaurant }) => {
   const openExportModal = () => setIsExportModalOpen(true);
   const closeExportModal = () => setIsExportModalOpen(false);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-
   // Estado para el restaurante seleccionado
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
-  // useEffect que se ejecuta cada vez que los modales se abren o cierran
+  // Obtener todos los restaurantes cuando los modales se abren o cierran
   useEffect(() => {
     fetchAllRestaurants();
   }, [
@@ -72,10 +68,10 @@ const Header = ({ onSelectRestaurant }) => {
     fetchAllRestaurants,
   ]);
 
-  // Handle restaurant selection from the dropdown
+  // Manejar la selección de un restaurante
   const handleSelectRestaurant = (restaurant) => {
     setSelectedRestaurant(restaurant);
-    onSelectRestaurant(restaurant); // Call the parent's function to update in the parent
+    onSelectRestaurant(restaurant); // Actualizar el estado en el componente padre
   };
 
   const handleLogout = () => {
@@ -83,11 +79,14 @@ const Header = ({ onSelectRestaurant }) => {
     navigate("/login");
   };
 
-  // Handle adding a new restaurant
+  // Manejar la adición de un nuevo restaurante
   const handleAddRestaurant = (restaurantDetails) => {
     console.log("New Restaurant Details:", restaurantDetails);
-    // Aquí puedes agregar la lógica para manejar la adición de un nuevo restaurante
+    // Lógica para manejar la adición de un nuevo restaurante
   };
+
+  // Patrón de expresión regular para detectar la URL /restaurant/:id
+  const isRestaurantPage = /^\/restaurant\/\d+/.test(location.pathname);
 
   return (
     <Box bg={colorMode === "light" ? "gray.100" : "gray.900"} px={6}>
@@ -106,91 +105,81 @@ const Header = ({ onSelectRestaurant }) => {
           </Text>
         </Flex>
 
-        {/* Navegación en Desktop */}
-        <Flex display={{ base: "none", md: "flex" }} alignItems="center">
-          <Stack direction="row" spacing={7}>
-            {location.pathname === "/home" ? (
-              <>
-                <Button onClick={openExportModal} colorScheme="red">
-                  Export
-                </Button>
-                {/* Menú desplegable de restaurantes */}
-                <Menu>
-                  <MenuButton
-                    as={Button}
-                    rightIcon={<ChevronDownIcon />}
-                    colorScheme="red"
-                  >
-                    Restaurantes
-                  </MenuButton>
-                  <MenuList>
-                    {/* Renderizado dinámico de los nombres de los restaurantes */}
-                    {restaurants.length > 0 ? (
-                      restaurants.map((restaurant) => (
-                        <MenuItem
-                          key={restaurant.id}
-                          onClick={() => handleSelectRestaurant(restaurant)}
-                        >
-                          {restaurant.name}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem>No restaurants available</MenuItem>
-                    )}
-                    <MenuItem
-                      icon={<AddIcon />}
-                      onClick={openRestaurantModal}
-                      color="green.500"
+        {/* Condicional para mostrar navegación si NO estamos en /restaurant/:id */}
+        {!isRestaurantPage && (
+          <Flex display={{ base: "none", md: "flex" }} alignItems="center">
+            <Stack direction="row" spacing={7}>
+              {location.pathname === "/home" ? (
+                <>
+                  <Button onClick={openExportModal} colorScheme="red">
+                    Export
+                  </Button>
+                  {/* Menú desplegable de restaurantes */}
+                  <Menu>
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<ChevronDownIcon />}
+                      colorScheme="red"
                     >
-                      Add Restaurant
-                    </MenuItem>
-                  </MenuList>
-                </Menu>
-                <Button onClick={handleLogout} colorScheme="red">
-                  Logout
-                </Button>
-              </>
-            ) : (
-              <>
-                <Link
-                  href="/register"
-                  px={2}
-                  py={1}
-                  rounded="md"
-                  _hover={{ textDecoration: "none", bg: "gray.200" }}
-                >
-                  Registro
-                </Link>
-                <Link
-                  href="/login"
-                  px={2}
-                  py={1}
-                  rounded="md"
-                  _hover={{ textDecoration: "none", bg: "gray.200" }}
-                >
-                  Login
-                </Link>
-              </>
-            )}
-            <Button onClick={toggleColorMode}>
-              {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
-            </Button>
-            <Button onClick={openHelpModal} variant="ghost">
-              <QuestionIcon />
-            </Button>
-          </Stack>
-        </Flex>
-
-        {/* Menú móvil */}
-        <Flex display={{ base: "flex", md: "none" }}>
-          <IconButton
-            size="md"
-            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-            aria-label="Toggle Menu"
-            onClick={onToggle}
-            variant="ghost"
-          />
-        </Flex>
+                      Restaurantes
+                    </MenuButton>
+                    <MenuList>
+                      {restaurants.length > 0 ? (
+                        restaurants.map((restaurant) => (
+                          <MenuItem
+                            key={restaurant.id}
+                            onClick={() => handleSelectRestaurant(restaurant)}
+                          >
+                            {restaurant.name}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem>No restaurants available</MenuItem>
+                      )}
+                      <MenuItem
+                        icon={<AddIcon />}
+                        onClick={openRestaurantModal}
+                        color="green.500"
+                      >
+                        Add Restaurant
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
+                  <Button onClick={handleLogout} colorScheme="red">
+                    Logout
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/register"
+                    px={2}
+                    py={1}
+                    rounded="md"
+                    _hover={{ textDecoration: "none", bg: "gray.200" }}
+                  >
+                    Registro
+                  </Link>
+                  <Link
+                    href="/login"
+                    px={2}
+                    py={1}
+                    rounded="md"
+                    _hover={{ textDecoration: "none", bg: "gray.200" }}
+                  >
+                    Login
+                  </Link>
+                </>
+              )}
+              <Button onClick={toggleColorMode}>
+                {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
+              </Button>
+              <Button onClick={openHelpModal} variant="ghost">
+                <QuestionIcon />
+              </Button>
+            </Stack>
+          </Flex>
+        )}
       </Flex>
 
       {/* Enlaces del menú móvil */}
@@ -199,7 +188,6 @@ const Header = ({ onSelectRestaurant }) => {
           <Stack as="nav" spacing={4}>
             {location.pathname === "/home" ? (
               <>
-                {/* Menú desplegable de restaurantes para móvil */}
                 <Menu>
                   <MenuButton
                     as={Button}

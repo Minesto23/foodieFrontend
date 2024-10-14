@@ -15,8 +15,9 @@ import EmptyFood from "../../components/EmptyFood";
 import FoodItemModal from "../../components/FoodItemModal";
 import RestaurantModal from "../../components/RestaurantModal";
 import HelpModal from "../../components/HelpModal";
+import CategoryModal from "../../components/CategoryModal"; // Asegúrate de importar el modal correcto
 import { MdEdit } from "react-icons/md";
-import toast from "react-hot-toast"; // For user feedback
+import toast from "react-hot-toast";
 
 // Customized hooks
 import { UseCategories } from "../../hooks/UseMenuCategories";
@@ -45,10 +46,10 @@ const MainPage = ({ selectedRestaurant }) => {
   const [restaurantDetails, setRestaurantDetails] = useState({});
   const [selectedItem, setSelectedItem] = useState(null); // Selected item for editing
   const [selectedCategoryId, setSelectedCategoryId] = useState(null); // Selected category for filtering
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false); // Estado del modal de categorías
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null); // State for selected category
 
   useEffect(() => {
     if (!selectedRestaurant) {
@@ -110,9 +111,10 @@ const MainPage = ({ selectedRestaurant }) => {
     setSelectedCategoryId(categoryId);
   };
 
+  // Handle editing category (Ensure category data is passed to the modal)
   const handleEditCategory = (category) => {
-    setSelectedCategory(category);
-    setIsCategoryModalOpen(true);
+    setSelectedCategory(category); // Set selected category
+    setIsCategoryModalOpen(true); // Open the modal
   };
 
   const handleEditItem = (item) => {
@@ -144,7 +146,8 @@ const MainPage = ({ selectedRestaurant }) => {
         selectedCategoryId={selectedCategoryId}
         onCategorySelect={handleCategorySelect}
         selectedRestaurant={selectedRestaurant}
-        openCategoryModal={() => setIsCategoryModalOpen(true)}
+        openCategoryModal={() => setIsCategoryModalOpen(true)} // Abre el modal de categorías
+        client={false}
       />
 
       {/* Conditional rendering of FoodCards or EmptyFood */}
@@ -165,13 +168,18 @@ const MainPage = ({ selectedRestaurant }) => {
                     size="lg"
                     variant="ghost"
                     pb={4}
-                    onClick={() => handleEditCategory(category)}
+                    onClick={() => handleEditCategory(category)} // Pass category data correctly
                   />
                 </Flex>
 
                 {/* Grid of food items for the category */}
-                <Flex justifyContent="center">
-                  <SimpleGrid columns={[1, 2, 3, 4, 5, 6]} spacing={4}>
+                <Flex justifyContent="center" alignItems="center">
+                  <SimpleGrid
+                    columns={[1, 2, 3, 4, 5, 6]}
+                    spacing={4}
+                    maxW="100%" // Evita que el grid crezca más de lo necesario
+                    mx="auto" // Centra el grid horizontalmente
+                  >
                     {filteredFoodItems
                       ?.filter((item) => item.category === category.id)
                       .map((item) => (
@@ -233,6 +241,13 @@ const MainPage = ({ selectedRestaurant }) => {
           </Text>
         </Box>
       )}
+
+      {/* Aquí va el modal de categorías */}
+      <CategoryModal
+        isOpen={isCategoryModalOpen}
+        onClose={() => setIsCategoryModalOpen(false)} // Cierra el modal de categorías
+        initialData={selectedCategory} // Pasa la categoría seleccionada para edición
+      />
 
       <FoodItemModal
         isOpen={isItemModalOpen}

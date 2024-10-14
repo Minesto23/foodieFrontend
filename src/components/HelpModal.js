@@ -16,8 +16,8 @@ const HelpModal = ({ isOpen, onClose }) => {
   const [page, setPage] = useState(1); // State to track current page
 
   const nextPage = () => {
-    if (page < 7) {
-      // Actualizado a 7 páginas
+    if (page < 4) {
+      // Cambiado a 4 páginas
       setPage(page + 1);
     }
   };
@@ -119,67 +119,6 @@ const HelpModal = ({ isOpen, onClose }) => {
             />
           </Box>
         );
-      case 5:
-        return (
-          <Box>
-            <Text mb={4}>
-              <strong>Editar Elementos del Menú:</strong> En cualquier momento,
-              podrás modificar los platillos que hayas agregado. Para ello,
-              selecciona el platillo en cuestión y haz clic en el botón de
-              editar. Desde esta sección, podrás actualizar detalles como el
-              precio, la descripción o cambiar la imagen del platillo. Esto es
-              útil cuando realizas cambios en el menú o ajustes de precios.
-            </Text>
-            <Image
-              src="/page5.png" // Reemplaza con la ruta real de la imagen
-              alt="Editar Elemento del Menú"
-              boxSize="400px" // Imagen más grande
-              objectFit="cover"
-              mx="auto"
-            />
-          </Box>
-        );
-      case 6:
-        return (
-          <Box>
-            <Text mb={4}>
-              <strong>Eliminar Elementos del Menú:</strong> Si necesitas
-              eliminar un platillo del menú, puedes hacerlo fácilmente.
-              Selecciona el platillo que deseas eliminar y haz clic en el botón
-              "Eliminar". Aparecerá una confirmación, ya que esta acción es
-              irreversible. Al confirmar, el platillo desaparecerá del menú y ya
-              no estará disponible para los clientes.
-            </Text>
-            <Image
-              src="/page6.png" // Reemplaza con la ruta real de la imagen
-              alt="Eliminar Elemento del Menú"
-              boxSize="400px" // Imagen más grande
-              objectFit="cover"
-              mx="auto"
-            />
-          </Box>
-        );
-      case 7:
-        return (
-          <Box>
-            <Text mb={4}>
-              <strong>Ver Reportes:</strong> Finalmente, puedes revisar el
-              rendimiento de tus restaurantes y los platillos del menú a través
-              de la sección de reportes. Aquí obtendrás información detallada
-              sobre las ventas, los platillos más populares y las ganancias.
-              Esta herramienta es clave para entender mejor lo que está
-              funcionando en tu negocio y tomar decisiones basadas en datos para
-              optimizar tus operaciones y el menú.
-            </Text>
-            <Image
-              src="/page7.png" // Reemplaza con la ruta real de la imagen
-              alt="Ver Reportes"
-              boxSize="400px" // Imagen más grande
-              objectFit="cover"
-              mx="auto"
-            />
-          </Box>
-        );
       default:
         return null;
     }
@@ -200,7 +139,7 @@ const HelpModal = ({ isOpen, onClose }) => {
           <Button onClick={prevPage} disabled={page === 1} mr={3}>
             Anterior
           </Button>
-          <Button onClick={nextPage} disabled={page === 7} mr={3}>
+          <Button onClick={nextPage} disabled={page === 4} mr={3}>
             Siguiente
           </Button>
           <Button variant="ghost" onClick={onClose}>

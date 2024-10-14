@@ -14,13 +14,18 @@ const CategoryButton = ({ icon, label, isActive, onClick }) => {
       transition="all 0.3s ease"
       _hover={{
         bg: isActive ? "red.600" : "red.600",
-        color: isActive ? "white" : "white",
-      }} // Change background color on hover
-      // w={40}
-      onClick={onClick} // Ensure this is a function
+        color: "white",
+      }}
+      width="120px" // Ancho fijo
+      height="120px" // Alto fijo
+      onClick={onClick}
     >
-      <Icon as={icon} w={20} h={8} />
-      <Text mt={2}>{label}</Text>
+      <Icon as={icon} w={10} h={10} /> {/* Tamaño fijo para el icono */}
+      <Text mt={2} fontSize="sm">
+        {" "}
+        {/* Tamaño de texto ajustado */}
+        {label}
+      </Text>
     </Box>
   );
 };

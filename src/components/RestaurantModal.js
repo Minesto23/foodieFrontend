@@ -48,18 +48,22 @@ const RestaurantModal = ({
         logo: null, // Reset the logo to avoid old URL being passed
       });
     } else {
-      // Reset form for new restaurant creation
-      setRestaurantDetails({
-        name: "",
-        location: "",
-        opening_hours: "",
-        contact_email: "",
-        contact_phone: "",
-        logo: null,
-        s3: null,
-      });
+      resetForm(); // Reset form for new restaurant creation
     }
   }, [initialData]);
+
+  // Function to reset the form fields
+  const resetForm = () => {
+    setRestaurantDetails({
+      name: "",
+      location: "",
+      opening_hours: "",
+      contact_email: "",
+      contact_phone: "",
+      logo: null,
+      s3: null,
+    });
+  };
 
   // Function to handle form field changes (for both text inputs and logo file)
   const handleChange = (e) => {
@@ -85,11 +89,8 @@ const RestaurantModal = ({
     setLoading(true); // Start loading spinner
 
     try {
-      const encodedS3Url = encodeURI(restaurantDetails.s3);
-
       const restaurantPayload = {
         ...restaurantDetails,
-        // s3: encodedS3Url, // Ensure restaurant ID is sent
       };
 
       if (initialData) {
@@ -102,10 +103,8 @@ const RestaurantModal = ({
         toast.success("¡Restaurante creado con éxito!"); // Success notification in Spanish
       }
 
+      resetForm(); // Clear form after submission
       onClose(); // Close the modal
-
-      // Reload the page
-      // window.location.reload(); // This will refresh the entire page
     } catch (error) {
       console.error("Error al enviar el formulario del restaurante:", error);
       toast.error(
@@ -125,7 +124,7 @@ const RestaurantModal = ({
         await deleteRestaurant(initialData.id); // Delete the restaurant by ID
         onClose(); // Close the modal
         toast.success("¡Restaurante eliminado con éxito!"); // Success notification in Spanish
-        // window.location.reload(); // Reload the page after deletion
+        resetForm(); // Clear form after deletion
       } catch (error) {
         console.error("Error al eliminar el restaurante:", error);
         toast.error("Error al eliminar el restaurante. Inténtalo de nuevo."); // Error notification in Spanish

@@ -6,6 +6,7 @@ import RegisterPage from "./Pages/Auth/RegisterPage";
 import Dashboard from "./Pages/Home/Dashboard";
 import Header from "./components/Header"; // Assuming you created a header component
 import Footer from "./components/Footer"; // Import Footer
+import Clients from "./Pages/Home/Clients";
 import { Toaster } from "react-hot-toast";
 
 const App = () => {
@@ -25,6 +26,8 @@ const App = () => {
           />
           <Route path="/" element={<LoginPage />} />{" "}
           {/* Default route to Login */}
+          {/* Route for Clients with restaurant ID */}
+          <Route path="/restaurant/:id" element={<Clients />} />
         </Routes>
         <Footer /> {/* Correctly placed Footer component */}
       </Router>

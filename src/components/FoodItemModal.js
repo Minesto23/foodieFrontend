@@ -45,15 +45,20 @@ const FoodItemModal = ({
       });
     } else {
       // Reset form when switching to add mode
-      setFoodItem({
-        name: "",
-        description: "",
-        price: "",
-        image: null,
-        category: "",
-      });
+      resetForm();
     }
   }, [initialData]);
+
+  // Reset form fields
+  const resetForm = () => {
+    setFoodItem({
+      name: "",
+      description: "",
+      price: "",
+      image: null,
+      category: "",
+    });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -80,14 +85,16 @@ const FoodItemModal = ({
 
       if (initialData) {
         // If editing, call updateMenuItem
-        const response = await updateMenuItem(initialData.id, foodItemPayload);
+        await updateMenuItem(initialData.id, foodItemPayload);
         toast.success("Item updated successfully!"); // Success notification
       } else {
         // If creating, call createMenuItem
-        const response = await createMenuItem(foodItemPayload);
+        await createMenuItem(foodItemPayload);
         toast.success("Item added successfully!"); // Success notification
       }
 
+      onSubmit(foodItemPayload); // Notify parent of the submission
+      resetForm(); // Clear the form after submission
       onClose(); // Close the modal
     } catch (error) {
       console.error("Error submitting item form:", error);

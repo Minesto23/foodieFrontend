@@ -16,15 +16,22 @@ import {
 } from "@chakra-ui/react";
 import { FaFilePdf, FaQrcode } from "react-icons/fa";
 import { useExport } from "../hooks/UserExport"; // Import the custom hook
+import { useNavigate } from "react-router-dom"; // Asegúrate de importar useNavigate
 
 const ExportModal = ({ isOpen, onClose, restaurantId }) => {
-  const { exportPDF, exportQRCode, loading } = useExport(); // Use the custom hook
+  const { exportQRCode, loading } = useExport(); // Use the custom hook
   const { colorMode } = useColorMode(); // Get current color mode
   const isDark = colorMode === "dark"; // Boolean for dark mode
+  const navigate = useNavigate(); // Inicializar useNavigate en el cuerpo del componente
 
   const handleExportPDF = async () => {
-    await exportPDF(restaurantId); // Call the function from the hook
-    onClose();
+    try {
+      // await exportPDF(restaurantId); // Llamada a la función para exportar PDF
+      onClose(); // Cerrar modal o realizar cualquier acción posterior
+      navigate("/restaurant/" + restaurantId); // Redirigir a la página deseada
+    } catch (error) {
+      console.error("Error al exportar el PDF:", error); // Manejar el error si ocurre
+    }
   };
 
   const handleExportQRCode = async () => {
@@ -51,7 +58,7 @@ const ExportModal = ({ isOpen, onClose, restaurantId }) => {
             >
               <Flex align="center" p="10px 0">
                 <Icon as={FaFilePdf} mr="10px" />
-                <Text>PDF</Text>
+                <Text>Web Menu</Text>
               </Flex>
             </Button>
             <Button

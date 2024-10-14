@@ -78,14 +78,19 @@ const CategoryModal = ({
     if (initialData) {
       setCategory({ ...initialData, restaurant: selectedRestaurant?.id }); // Add restaurant ID to the category
     } else {
-      setCategory({
-        name: "",
-        description: "",
-        icon_name: "",
-        restaurant: selectedRestaurant?.id,
-      }); // Reset for new category
+      resetForm(); // Reset for new category
     }
   }, [initialData, selectedRestaurant]);
+
+  // Function to reset the form
+  const resetForm = () => {
+    setCategory({
+      name: "",
+      description: "",
+      icon_name: "",
+      restaurant: selectedRestaurant?.id,
+    });
+  };
 
   // Handle form changes
   const handleChange = (e) => {
@@ -113,7 +118,6 @@ const CategoryModal = ({
         restaurant: selectedRestaurant?.id, // Ensure restaurant ID is sent
       };
 
-      console.log("Payload:", categoryPayload); // Debug the payload here
       if (initialData) {
         // Update category if initialData exists
         await updateCategory(initialData.id, categoryPayload);
@@ -121,7 +125,9 @@ const CategoryModal = ({
         // Create new category
         await createCategory(categoryPayload);
       }
+
       onSubmit(categoryPayload); // Call parent submit handler to update the UI
+      resetForm(); // Clear the form after submission
       onClose(); // Close modal on success
     } catch (error) {
       console.error("Error submitting category:", error);
