@@ -58,15 +58,18 @@ const Header = ({ onSelectRestaurant }) => {
   // Estado para el restaurante seleccionado
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
+
+
   // Obtener todos los restaurantes cuando los modales se abren o cierran
   useEffect(() => {
     fetchAllRestaurants();
-  }, [
-    isRestaurantModalOpen,
-    isHelpModalOpen,
-    isExportModalOpen,
-    fetchAllRestaurants,
-  ]);
+
+  }, [fetchAllRestaurants]);  // Run only once on component mount
+
+  // Fetch restaurants when modals open or close
+  useEffect(() => {
+    fetchAllRestaurants();
+  }, [isRestaurantModalOpen, isHelpModalOpen, isExportModalOpen,fetchAllRestaurants]);
 
   // Manejar la selección de un restaurante
   const handleSelectRestaurant = (restaurant) => {

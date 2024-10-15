@@ -83,15 +83,15 @@ const FoodItemModal = ({
         ...foodItem,
       };
 
-      if (initialData) {
-        // If editing, call updateMenuItem
-        await updateMenuItem(initialData.id, foodItemPayload);
-        toast.success("Item updated successfully!"); // Success notification
-      } else {
-        // If creating, call createMenuItem
-        await createMenuItem(foodItemPayload);
-        toast.success("Item added successfully!"); // Success notification
-      }
+      // if (initialData) {
+      //   // If editing, call updateMenuItem
+      //   await updateMenuItem(initialData.id, foodItemPayload);
+      //   toast.success("Item updated successfully!"); // Success notification
+      // } else {
+      //   // If creating, call createMenuItem
+      //   await createMenuItem(foodItemPayload);
+      //   toast.success("Item added successfully!"); // Success notification
+      // }
 
       onSubmit(foodItemPayload); // Notify parent of the submission
       resetForm(); // Clear the form after submission

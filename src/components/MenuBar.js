@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Flex } from "@chakra-ui/react";
 import CategoryButton from "./CategoryButton";
 import { FaUtensils, FaPlus } from "react-icons/fa";
@@ -20,9 +20,9 @@ import {
   FaWineBottle,
   FaBeer,
 } from "react-icons/fa";
+import { UseCategories } from "../hooks/UseMenuCategories";
 
 const MenuBar = ({
-  categories,
   selectedCategoryId,
   onCategorySelect,
   selectedRestaurant,
@@ -48,6 +48,13 @@ const MenuBar = ({
     FaWineBottle: FaWineBottle,
     FaBeer: FaBeer,
   };
+  const { menuCategories: categories, fetchAllCategories } = UseCategories(selectedRestaurant);
+  useEffect(() => {
+    fetchAllCategories(); // Fetch categories when a restaurant is selected
+  }, [
+    fetchAllCategories,
+    isCategoryModalOpen,
+  ]);
 
   // Botón para agregar categoría
   let addCategoryButton = null;

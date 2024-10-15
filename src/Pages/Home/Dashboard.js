@@ -18,6 +18,8 @@ import HelpModal from "../../components/HelpModal";
 import CategoryModal from "../../components/CategoryModal"; // Asegúrate de importar el modal correcto
 import { MdEdit } from "react-icons/md";
 import toast from "react-hot-toast";
+import { UseRestaurant } from "../../hooks/UseRestaurant";
+
 
 // Customized hooks
 import { UseCategories } from "../../hooks/UseMenuCategories";
@@ -26,6 +28,7 @@ import UseMenuItems from "../../hooks/UseMenuItems";
 const MainPage = ({ selectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
+  const { restaurants, fetchAllRestaurants } = UseRestaurant();
 
   // Modal disclosure for HelpModal
   const { isOpen: isHelpModalOpen, onClose: onHelpModalClose } =
@@ -50,23 +53,19 @@ const MainPage = ({ selectedRestaurant }) => {
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null); // State for selected category
+  
 
   useEffect(() => {
     if (!selectedRestaurant) {
       setRestaurantDetails({ name: "Select a restaurant" });
       return;
     }
-
+  
     setRestaurantDetails(selectedRestaurant);
     fetchAllCategories(); // Fetch categories when a restaurant is selected
     fetchAllMenuItems(); // Fetch menu items
-  }, [
-    selectedRestaurant,
-    fetchAllCategories,
-    fetchAllMenuItems,
-    isCategoryModalOpen,
-    isItemModalOpen,
-  ]);
+  }, [selectedRestaurant, fetchAllCategories, fetchAllMenuItems]); // Eliminar isCategoryModalOpen
+
 
   // Add or update food item via API with toast notification
   const handleNewFoodItem = async (newItem) => {

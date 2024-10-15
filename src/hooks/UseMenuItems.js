@@ -33,16 +33,23 @@ export const UseMenuItems = () => {
     }
   }, [setLoading, setMenuItems]);
 
+  const [addingItem, setAddingItem] = useState(false);
+
   const addMenuItem = useCallback(
     async (newItem) => {
+      if (addingItem) return; // Prevent multiple calls
+  
+      setAddingItem(true); // Set adding in progress
       try {
         const data = await createMenuItem(newItem);
         setMenuItems((prevItems) => [...prevItems, data]);
       } catch (error) {
         console.error("Error creating menu item:", error);
+      } finally {
+        setAddingItem(false); // Reset adding state
       }
     },
-    [setMenuItems]
+    [setMenuItems, addingItem]
   );
 
   const modifyMenuItem = useCallback(
