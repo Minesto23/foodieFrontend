@@ -171,7 +171,7 @@ const MainPage = ({ selectedRestaurant }) => {
       />
 
       {/* Conditional rendering of FoodCards or EmptyFood */}
-      {filteredFoodItems?.length > 0 ? (
+      {filteredFoodItems?.length >= 0 ? (
         categories?.map((category) => (
           <Box key={category.id} mt={8}>
             {filteredFoodItems.some(

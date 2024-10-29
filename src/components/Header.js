@@ -8,7 +8,7 @@ import {
   Stack,
   Link,
   Image,
-  // IconButton,
+  IconButton,
   Collapse,
   Menu,
   MenuButton,
@@ -21,6 +21,8 @@ import {
   ChevronDownIcon,
   AddIcon,
   QuestionIcon,
+  HamburgerIcon,
+  CloseIcon,
 } from "@chakra-ui/icons";
 import { useLocation, useNavigate } from "react-router-dom";
 import CreateRestaurantModal from "./RestaurantModalCreate";
@@ -100,7 +102,16 @@ const Header = ({ onSelectRestaurant }) => {
           </Text>
         </Flex>
 
-        {/* Condicional para mostrar navegación si NO estamos en /restaurant/:id */}
+        {/* Menú de hamburguesa para dispositivos móviles */}
+        <IconButton
+          size="md"
+          icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+          aria-label="Open Menu"
+          display={{ md: "none" }}
+          onClick={onToggle}
+        />
+
+        {/* Menú de navegación para pantallas medianas y grandes */}
         {!isRestaurantPage && (
           <Flex display={{ base: "none", md: "flex" }} alignItems="center">
             <Stack direction="row" spacing={7}>
@@ -183,11 +194,15 @@ const Header = ({ onSelectRestaurant }) => {
           <Stack as="nav" spacing={4}>
             {location.pathname === "/home" ? (
               <>
+                <Button onClick={openExportModal} colorScheme="red" width="full">
+                  Export
+                </Button>
                 <Menu>
                   <MenuButton
                     as={Button}
                     rightIcon={<ChevronDownIcon />}
                     colorScheme="red"
+                    width="full"
                   >
                     Restaurantes
                   </MenuButton>
@@ -213,7 +228,7 @@ const Header = ({ onSelectRestaurant }) => {
                     </MenuItem>
                   </MenuList>
                 </Menu>
-                <Button onClick={handleLogout} colorScheme="red">
+                <Button onClick={handleLogout} colorScheme="red" width="full">
                   Logout
                 </Button>
               </>
