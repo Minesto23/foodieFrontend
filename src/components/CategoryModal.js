@@ -65,6 +65,7 @@ const CategoryModal = ({
   initialData,
   onDelete,
   selectedRestaurant,
+  onCategoryCreated,
 }) => {
   const [category, setCategory] = useState({
     name: "",
@@ -72,6 +73,16 @@ const CategoryModal = ({
     icon_name: "", // Save the icon's name here
     restaurant: selectedRestaurant?.id || null, // Assign the restaurant ID
   });
+
+    // Function to reset the form
+    const resetForm = () => {
+      setCategory({
+        name: "",
+        description: "",
+        icon_name: "",
+        restaurant: selectedRestaurant?.id,
+      });
+    };
 
   // Pre-fill modal for editing
   useEffect(() => {
@@ -82,15 +93,7 @@ const CategoryModal = ({
     }
   }, [initialData, selectedRestaurant]);
 
-  // Function to reset the form
-  const resetForm = () => {
-    setCategory({
-      name: "",
-      description: "",
-      icon_name: "",
-      restaurant: selectedRestaurant?.id,
-    });
-  };
+
 
   // Handle form changes
   const handleChange = (e) => {
@@ -112,23 +115,25 @@ const CategoryModal = ({
   // Handle form submission (create or update category)
   const handleSubmit = async () => {
     try {
-      // Ensure the restaurant ID is included in the category payload
       const categoryPayload = {
         ...category,
-        restaurant: selectedRestaurant?.id, // Ensure restaurant ID is sent
+        restaurant: selectedRestaurant?.id,
       };
-
+  
       if (initialData) {
         // Update category if initialData exists
         await updateCategory(initialData.id, categoryPayload);
       } else {
         // Create new category
         await createCategory(categoryPayload);
+        if (onCategoryCreated) {
+          onCategoryCreated(); // Llama a onCategoryCreated después de crear
+        }
       }
-
-      onSubmit(categoryPayload); // Call parent submit handler to update the UI
-      resetForm(); // Clear the form after submission
-      onClose(); // Close modal on success
+  
+      onSubmit(categoryPayload);
+      resetForm();
+      onClose();
     } catch (error) {
       console.error("Error submitting category:", error);
     }

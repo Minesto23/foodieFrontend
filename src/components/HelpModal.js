@@ -16,8 +16,8 @@ const HelpModal = ({ isOpen, onClose }) => {
   const [page, setPage] = useState(1); // State to track current page
 
   const nextPage = () => {
-    if (page < 4) {
-      // Cambiado a 4 páginas
+    if (page < 5) {
+      // Ahora hay 5 páginas
       setPage(page + 1);
     }
   };
@@ -43,9 +43,9 @@ const HelpModal = ({ isOpen, onClose }) => {
               aprender cómo usar todas las funcionalidades de la app.
             </Text>
             <Image
-              src="/logo192.png" // Reemplaza con la ruta real de la imagen
+              src="/logo192.png"
               alt="Imagen de Bienvenida"
-              boxSize="400px" // Imagen más grande
+              boxSize="400px"
               objectFit="cover"
               mx="auto"
             />
@@ -66,9 +66,9 @@ const HelpModal = ({ isOpen, onClose }) => {
               para agregar categorías y elementos del menú.
             </Text>
             <Image
-              src="/page2.png" // Reemplaza con la ruta real de la imagen
+              src="/page2.png"
               alt="Agregar Restaurante"
-              boxSize="400px" // Imagen más grande
+              boxSize="400px"
               objectFit="cover"
               mx="auto"
             />
@@ -89,9 +89,9 @@ const HelpModal = ({ isOpen, onClose }) => {
               platillo se podrá asociar a su respectiva categoría.
             </Text>
             <Image
-              src="/page3.png" // Reemplaza con la ruta real de la imagen
+              src="/page3.png"
               alt="Agregar Categoría"
-              boxSize="400px" // Imagen más grande
+              boxSize="400px"
               objectFit="cover"
               mx="auto"
             />
@@ -111,10 +111,29 @@ const HelpModal = ({ isOpen, onClose }) => {
               en el lugar adecuado dentro del menú.
             </Text>
             <Image
-              src="/page4.png" // Reemplaza con la ruta real de la imagen
+              src="/page4.png"
               alt="Agregar Elemento del Menú"
-              boxSize="400px" // Imagen más grande
+              boxSize="400px"
               objectFit="cover"
+              mx="auto"
+            />
+          </Box>
+        );
+      case 5:
+        return (
+          <Box>
+            <Text mb={4}>
+              Si deseas volver a consultar esta guía en el futuro, puedes abrirla
+              nuevamente haciendo clic en el botón de "Ayuda" que se encuentra en
+              la esquina superior derecha de la pantalla. ¡Esperamos que disfrutes
+              usando Foodie App y que te ayude a gestionar tu restaurante de
+              manera eficiente!
+            </Text>
+            <Image
+              src="/page5.png" // Reemplaza con la ruta real de la imagen del botón de ayuda
+              alt="Botón de Ayuda"
+              boxSize="400px"
+              objectFit="contain"
               mx="auto"
             />
           </Box>
@@ -126,8 +145,6 @@ const HelpModal = ({ isOpen, onClose }) => {
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} size="6xl">
-      {" "}
-      {/* Modal más grande con size="6xl" */}
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>Guía de Uso - Foodie App</ModalHeader>
@@ -136,12 +153,16 @@ const HelpModal = ({ isOpen, onClose }) => {
         </ModalBody>
 
         <ModalFooter>
-          <Button onClick={prevPage} disabled={page === 1} mr={3}>
-            Anterior
-          </Button>
-          <Button onClick={nextPage} disabled={page === 4} mr={3}>
-            Siguiente
-          </Button>
+          {page > 1 && ( // Ocultar botón "Anterior" en la primera página
+            <Button onClick={prevPage} mr={3}>
+              Anterior
+            </Button>
+          )}
+          {page < 5 && ( // Ocultar botón "Siguiente" en la última página
+            <Button onClick={nextPage} mr={3}>
+              Siguiente
+            </Button>
+          )}
           <Button variant="ghost" onClick={onClose}>
             Cerrar
           </Button>

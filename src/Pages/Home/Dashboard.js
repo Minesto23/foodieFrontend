@@ -18,7 +18,8 @@ import HelpModal from "../../components/HelpModal";
 import CategoryModal from "../../components/CategoryModal"; // Asegúrate de importar el modal correcto
 import { MdEdit } from "react-icons/md";
 import toast from "react-hot-toast";
-import { UseRestaurant } from "../../hooks/UseRestaurant";
+import { useRestaurantContext } from "../../context/RestaurantContext"; // Import the RestaurantContext
+
 
 
 // Customized hooks
@@ -28,11 +29,13 @@ import UseMenuItems from "../../hooks/UseMenuItems";
 const MainPage = ({ selectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
-  const { restaurants, fetchAllRestaurants } = UseRestaurant();
+  const { restaurants, fetchAllRestaurants } = useRestaurantContext();
 
   // Modal disclosure for HelpModal
-  const { isOpen: isHelpModalOpen, onClose: onHelpModalClose } =
-    useDisclosure();
+  const { isOpen: isHelpModalOpen, onClose: onHelpModalClose, onOpen: onHelpModalOpen } =
+  useDisclosure( ); // Estado inicial en abierto
+
+
 
   // Use hooks for menu categories and items
   const { menuCategories: categories, fetchAllCategories } =
@@ -56,15 +59,33 @@ const MainPage = ({ selectedRestaurant }) => {
   
 
   useEffect(() => {
-    if (!selectedRestaurant) {
-      setRestaurantDetails({ name: "Select a restaurant" });
+    if (!selectedRestaurant && restaurants != null) {
+      setRestaurantDetails(restaurants[0]);
+      fetchAllCategories(); // Fetch categories when a restaurant is selected
+      fetchAllMenuItems(); // Fetch menu items
       return;
+    } else if (!selectedRestaurant){
+      setRestaurantDetails({ name: "Select a restaurant" });
+      return
+    }
+
+    if (restaurants.length === 0) {
+      onHelpModalOpen(); // Abre el modal si no hay restaurantes
+    } else {
+      onHelpModalClose(); // Cierra el modal si hay restaurantes
     }
   
     setRestaurantDetails(selectedRestaurant);
     fetchAllCategories(); // Fetch categories when a restaurant is selected
     fetchAllMenuItems(); // Fetch menu items
-  }, [selectedRestaurant, fetchAllCategories, fetchAllMenuItems]); // Eliminar isCategoryModalOpen
+  }, [selectedRestaurant, fetchAllCategories, fetchAllMenuItems, isCategoryModalOpen,isItemModalOpen,isHelpModalOpen]); 
+
+  useEffect(()=>{
+    fetchAllCategories();
+    fetchAllMenuItems();
+  },[isCategoryModalOpen,isItemModalOpen,fetchAllCategories,fetchAllMenuItems])
+
+
 
 
   // Add or update food item via API with toast notification
@@ -144,7 +165,7 @@ const MainPage = ({ selectedRestaurant }) => {
         categories={categories || []}
         selectedCategoryId={selectedCategoryId}
         onCategorySelect={handleCategorySelect}
-        selectedRestaurant={selectedRestaurant}
+        selectedRestaurant={restaurantDetails}
         openCategoryModal={() => setIsCategoryModalOpen(true)} // Abre el modal de categorías
         client={false}
       />
@@ -202,7 +223,7 @@ const MainPage = ({ selectedRestaurant }) => {
       )}
 
       {/* Add Item Card, visible only if there is at least one category */}
-      {categories?.length > 0 && (
+      {restaurantDetails!=null && (
         <Box
           bg="white"
           boxShadow="md"
@@ -243,14 +264,22 @@ const MainPage = ({ selectedRestaurant }) => {
 
       {/* Aquí va el modal de categorías */}
       <CategoryModal
-        isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)} // Cierra el modal de categorías
-        initialData={selectedCategory} // Pasa la categoría seleccionada para edición
-      />
+  isOpen={isCategoryModalOpen}
+  onClose={() => {
+    setIsCategoryModalOpen(false);
+  }}
+  initialData={selectedCategory}
+  selectedRestaurant={restaurantDetails} // Pasa restaurantDetails como selectedRestaurant directamente
+  onCategoryCreated={() => {
+    fetchAllCategories(); // Llama a fetchAllCategories inmediatamente
+  }}
+/>
 
       <FoodItemModal
         isOpen={isItemModalOpen}
-        onClose={() => setIsItemModalOpen(false)}
+        onClose={() => {setIsItemModalOpen(false);
+          fetchAllMenuItems();
+        }}
         onSubmit={handleNewFoodItem}
         onDelete={handleDeleteItem}
         initialData={selectedItem}

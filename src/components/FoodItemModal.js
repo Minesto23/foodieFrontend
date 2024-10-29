@@ -35,6 +35,17 @@ const FoodItemModal = ({
     image: null, // Now storing the file instead of URL
     category: "",
   });
+    // Reset form fields
+    const resetForm = () => {
+      setFoodItem({
+        name: "",
+        description: "",
+        price: "",
+        image: null,
+        category: "",
+      });
+    };
+  
 
   // Pre-fill the form if editing an existing item
   useEffect(() => {
@@ -49,16 +60,6 @@ const FoodItemModal = ({
     }
   }, [initialData]);
 
-  // Reset form fields
-  const resetForm = () => {
-    setFoodItem({
-      name: "",
-      description: "",
-      price: "",
-      image: null,
-      category: "",
-    });
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;

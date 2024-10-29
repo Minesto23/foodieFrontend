@@ -39,6 +39,18 @@ const RestaurantModal = ({
     s3: null,
   });
 
+  const resetForm = () => {
+    setRestaurantDetails({
+      name: "",
+      location: "",
+      opening_hours: "",
+      contact_email: "",
+      contact_phone: "",
+      logo: null,
+      s3: null,
+    });
+  };
+
   // Effect to load the initial data when editing an existing restaurant
   useEffect(() => {
     if (initialData) {
@@ -53,17 +65,7 @@ const RestaurantModal = ({
   }, [initialData]);
 
   // Function to reset the form fields
-  const resetForm = () => {
-    setRestaurantDetails({
-      name: "",
-      location: "",
-      opening_hours: "",
-      contact_email: "",
-      contact_phone: "",
-      logo: null,
-      s3: null,
-    });
-  };
+
 
   // Function to handle form field changes (for both text inputs and logo file)
   const handleChange = (e) => {
@@ -125,6 +127,7 @@ const RestaurantModal = ({
         onClose(); // Close the modal
         toast.success("¡Restaurante eliminado con éxito!"); // Success notification in Spanish
         resetForm(); // Clear form after deletion
+        window.location.reload();
       } catch (error) {
         console.error("Error al eliminar el restaurante:", error);
         toast.error("Error al eliminar el restaurante. Inténtalo de nuevo."); // Error notification in Spanish

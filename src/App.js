@@ -8,29 +8,32 @@ import Header from "./components/Header"; // Assuming you created a header compo
 import Footer from "./components/Footer"; // Import Footer
 import Clients from "./Pages/Home/Clients";
 import { Toaster } from "react-hot-toast";
+import { RestaurantProvider } from "./context/RestaurantContext";
 
 const App = () => {
   const [selectedRestaurant, setSelectedRestaurant] = useState(null); // Manage selected restaurant at this level
 
   return (
     <ChakraProvider>
-      <Router>
-        <Toaster position="top-right" reverseOrder={false} />
-        <Header onSelectRestaurant={setSelectedRestaurant} />
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route
-            path="/home"
-            element={<Dashboard selectedRestaurant={selectedRestaurant} />}
-          />
-          <Route path="/" element={<LoginPage />} />{" "}
-          {/* Default route to Login */}
-          {/* Route for Clients with restaurant ID */}
-          <Route path="/restaurant/:id" element={<Clients />} />
-        </Routes>
-        <Footer /> {/* Correctly placed Footer component */}
-      </Router>
+      <RestaurantProvider>
+        <Router>
+          <Toaster position="top-right" reverseOrder={false} />
+          <Header onSelectRestaurant={setSelectedRestaurant} />
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route
+              path="/home"
+              element={<Dashboard selectedRestaurant={selectedRestaurant} />}
+              />
+            <Route path="/" element={<LoginPage />} />{" "}
+            {/* Default route to Login */}
+            {/* Route for Clients with restaurant ID */}
+            <Route path="/restaurant/:id" element={<Clients />} />
+          </Routes>
+          <Footer /> {/* Correctly placed Footer component */}
+        </Router>
+      </RestaurantProvider>
     </ChakraProvider>
   );
 };

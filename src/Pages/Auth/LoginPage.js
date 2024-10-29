@@ -1,10 +1,17 @@
 import React from "react";
 import { Flex, Box, Image, useColorMode } from "@chakra-ui/react";
 import LoginForm from "../../components/LoginForm"; // Import the LoginForm component
+import { useRestaurantContext } from "../../context/RestaurantContext"; // Import the RestaurantContext
 
 const LoginPage = () => {
   const { colorMode } = useColorMode(); // Chakra hook to detect light or dark mode
   const isDark = colorMode === "dark";
+  const { fetchAllRestaurants } = useRestaurantContext(); // Access fetchAllRestaurants from context
+
+  const handleLoginSuccess = async () => {
+    // Fetch restaurants after successful login
+    await fetchAllRestaurants();
+  };
 
   return (
     <Flex
@@ -38,7 +45,8 @@ const LoginPage = () => {
         p={{ base: 6, md: 8 }} // Responsive padding for form area
         width={{ base: "100%", md: "auto" }} // Full width on mobile
       >
-        <LoginForm /> {/* Render the login form here */}
+        {/* Pass the handleLoginSuccess to the LoginForm */}
+        <LoginForm onLoginSuccess={handleLoginSuccess} />
       </Box>
     </Flex>
   );

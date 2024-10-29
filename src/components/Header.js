@@ -8,7 +8,7 @@ import {
   Stack,
   Link,
   Image,
-  IconButton,
+  // IconButton,
   Collapse,
   Menu,
   MenuButton,
@@ -26,10 +26,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import CreateRestaurantModal from "./RestaurantModalCreate";
 import HelpModal from "./HelpModal";
 import ExportModal from "./ExportModal";
-import { UseRestaurant } from "../hooks/UseRestaurant";
+import { useRestaurantContext } from "../context/RestaurantContext"; // Import the RestaurantContext
 
 const Header = ({ onSelectRestaurant }) => {
-  const { restaurants, fetchAllRestaurants } = UseRestaurant();
+  const { restaurants, fetchAllRestaurants } = useRestaurantContext(); // Use context to fetch restaurants
   const { colorMode, toggleColorMode } = useColorMode();
 
   // Obtener la ruta actual usando useLocation
@@ -58,18 +58,10 @@ const Header = ({ onSelectRestaurant }) => {
   // Estado para el restaurante seleccionado
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
-
-
-  // Obtener todos los restaurantes cuando los modales se abren o cierran
+  // Obtener todos los restaurantes al montar el componente
   useEffect(() => {
-    fetchAllRestaurants();
-
-  }, [fetchAllRestaurants]);  // Run only once on component mount
-
-  // Fetch restaurants when modals open or close
-  useEffect(() => {
-    fetchAllRestaurants();
-  }, [isRestaurantModalOpen, isHelpModalOpen, isExportModalOpen,fetchAllRestaurants]);
+    fetchAllRestaurants(); // Fetch restaurants when component mounts
+  }, [isRestaurantModalOpen, isHelpModalOpen, isExportModalOpen, fetchAllRestaurants]);
 
   // Manejar la selección de un restaurante
   const handleSelectRestaurant = (restaurant) => {
