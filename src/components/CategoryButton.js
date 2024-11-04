@@ -16,14 +16,12 @@ const CategoryButton = ({ icon, label, isActive, onClick }) => {
         bg: isActive ? "red.600" : "red.600",
         color: "white",
       }}
-      width="120px" // Ancho fijo
-      height="120px" // Alto fijo
+      width={{ base: "80px", md: "100px", lg: "120px" }} // Ancho ajustable según tamaño de pantalla
+      height={{ base: "80px", md: "100px", lg: "120px" }} // Alto ajustable según tamaño de pantalla
       onClick={onClick}
     >
-      <Icon as={icon} w={10} h={10} /> {/* Tamaño fijo para el icono */}
-      <Text mt={2} fontSize="sm">
-        {" "}
-        {/* Tamaño de texto ajustado */}
+      <Icon as={icon} w={{ base: 6, md: 8, lg: 10 }} h={{ base: 6, md: 8, lg: 10 }} /> {/* Tamaño del icono responsive */}
+      <Text mt={2} fontSize={{ base: "xs", md: "sm", lg: "md" }}>
         {label}
       </Text>
     </Box>

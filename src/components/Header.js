@@ -28,70 +28,61 @@ import { useLocation, useNavigate } from "react-router-dom";
 import CreateRestaurantModal from "./RestaurantModalCreate";
 import HelpModal from "./HelpModal";
 import ExportModal from "./ExportModal";
-import { useRestaurantContext } from "../context/RestaurantContext"; // Import the RestaurantContext
+import { useRestaurantContext } from "../context/RestaurantContext";
 
 const Header = ({ onSelectRestaurant }) => {
-  const { restaurants, fetchAllRestaurants } = useRestaurantContext(); // Use context to fetch restaurants
+  const { restaurants, fetchAllRestaurants } = useRestaurantContext();
   const { colorMode, toggleColorMode } = useColorMode();
 
-  // Obtener la ruta actual usando useLocation
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Estado para el menú móvil
   const [isOpen, setIsOpen] = useState(false);
   const onToggle = () => setIsOpen((prevState) => !prevState);
 
-  // Estado para el modal de restaurantes
   const [isRestaurantModalOpen, setIsRestaurantModalOpen] = useState(false);
   const openRestaurantModal = () => setIsRestaurantModalOpen(true);
   const closeRestaurantModal = () => setIsRestaurantModalOpen(false);
 
-  // Estado para el modal de ayuda
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
   const openHelpModal = () => setIsHelpModalOpen(true);
   const closeHelpModal = () => setIsHelpModalOpen(false);
 
-  // Estado para el modal de exportar
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const openExportModal = () => setIsExportModalOpen(true);
   const closeExportModal = () => setIsExportModalOpen(false);
 
-  // Estado para el restaurante seleccionado
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
-  // Obtener todos los restaurantes al montar el componente
   useEffect(() => {
-    fetchAllRestaurants(); // Fetch restaurants when component mounts
+    fetchAllRestaurants();
+    if (selectedRestaurant == null) {
+      setSelectedRestaurant(restaurants[0]);
+    }
   }, [isRestaurantModalOpen, isHelpModalOpen, isExportModalOpen, fetchAllRestaurants]);
 
-  // Manejar la selección de un restaurante
   const handleSelectRestaurant = (restaurant) => {
     setSelectedRestaurant(restaurant);
-    onSelectRestaurant(restaurant); // Actualizar el estado en el componente padre
+    onSelectRestaurant(restaurant);
   };
 
   const handleLogout = () => {
-    console.log("Logging out...");
+    // console.log("Logging out...");
     navigate("/login");
   };
 
-  // Manejar la adición de un nuevo restaurante
   const handleAddRestaurant = (restaurantDetails) => {
     console.log("New Restaurant Details:", restaurantDetails);
-    // Lógica para manejar la adición de un nuevo restaurante
   };
 
-  // Patrón de expresión regular para detectar la URL /restaurant/:id
   const isRestaurantPage = /^\/restaurant\/\d+/.test(location.pathname);
 
   return (
     <Box bg={colorMode === "light" ? "gray.100" : "gray.900"} px={6}>
       <Flex h={16} alignItems="center" justifyContent="space-between">
-        {/* Logo */}
-        <Flex alignItems="center" pl={10}>
+        <Flex alignItems="center" pl={{ base: 2, md: 10 }}>
           <Image
-            src="/logo192.png" // Añade la ruta de tu logo aquí
+            src="/logo192.png"
             alt="Logo"
             boxSize={{ base: "30px", md: "40px" }}
             objectFit="cover"
@@ -102,7 +93,7 @@ const Header = ({ onSelectRestaurant }) => {
           </Text>
         </Flex>
 
-        {/* Menú de hamburguesa para dispositivos móviles */}
+        {/* Mobile Menu Toggle */}
         <IconButton
           size="md"
           icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
@@ -111,23 +102,18 @@ const Header = ({ onSelectRestaurant }) => {
           onClick={onToggle}
         />
 
-        {/* Menú de navegación para pantallas medianas y grandes */}
+        {/* Desktop Navigation Menu */}
         {!isRestaurantPage && (
           <Flex display={{ base: "none", md: "flex" }} alignItems="center">
-            <Stack direction="row" spacing={7}>
+            <Stack direction="row" spacing={4}>
               {location.pathname === "/home" ? (
                 <>
                   <Button onClick={openExportModal} colorScheme="red">
                     Export
                   </Button>
-                  {/* Menú desplegable de restaurantes */}
                   <Menu>
-                    <MenuButton
-                      as={Button}
-                      rightIcon={<ChevronDownIcon />}
-                      colorScheme="red"
-                    >
-                      Restaurantes
+                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />} colorScheme="red">
+                      Restaurants
                     </MenuButton>
                     <MenuList>
                       {restaurants.length > 0 ? (
@@ -142,11 +128,7 @@ const Header = ({ onSelectRestaurant }) => {
                       ) : (
                         <MenuItem>No restaurants available</MenuItem>
                       )}
-                      <MenuItem
-                        icon={<AddIcon />}
-                        onClick={openRestaurantModal}
-                        color="green.500"
-                      >
+                      <MenuItem icon={<AddIcon />} onClick={openRestaurantModal} color="green.500">
                         Add Restaurant
                       </MenuItem>
                     </MenuList>
@@ -157,22 +139,10 @@ const Header = ({ onSelectRestaurant }) => {
                 </>
               ) : (
                 <>
-                  <Link
-                    href="/register"
-                    px={2}
-                    py={1}
-                    rounded="md"
-                    _hover={{ textDecoration: "none", bg: "gray.200" }}
-                  >
-                    Registro
+                  <Link href="/register" px={2} py={1} rounded="md" _hover={{ bg: "gray.200" }}>
+                    Register
                   </Link>
-                  <Link
-                    href="/login"
-                    px={2}
-                    py={1}
-                    rounded="md"
-                    _hover={{ textDecoration: "none", bg: "gray.200" }}
-                  >
+                  <Link href="/login" px={2} py={1} rounded="md" _hover={{ bg: "gray.200" }}>
                     Login
                   </Link>
                 </>
@@ -188,7 +158,7 @@ const Header = ({ onSelectRestaurant }) => {
         )}
       </Flex>
 
-      {/* Enlaces del menú móvil */}
+      {/* Mobile Menu Links */}
       <Collapse in={isOpen} animateOpacity>
         <Box pb={4} display={{ md: "none" }}>
           <Stack as="nav" spacing={4}>
@@ -198,13 +168,8 @@ const Header = ({ onSelectRestaurant }) => {
                   Export
                 </Button>
                 <Menu>
-                  <MenuButton
-                    as={Button}
-                    rightIcon={<ChevronDownIcon />}
-                    colorScheme="red"
-                    width="full"
-                  >
-                    Restaurantes
+                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} colorScheme="red" width="full">
+                    Restaurants
                   </MenuButton>
                   <MenuList>
                     {restaurants.length > 0 ? (
@@ -219,11 +184,7 @@ const Header = ({ onSelectRestaurant }) => {
                     ) : (
                       <MenuItem>No restaurants available</MenuItem>
                     )}
-                    <MenuItem
-                      icon={<AddIcon />}
-                      onClick={openRestaurantModal}
-                      color="green.500"
-                    >
+                    <MenuItem icon={<AddIcon />} onClick={openRestaurantModal} color="green.500">
                       Add Restaurant
                     </MenuItem>
                   </MenuList>
@@ -235,7 +196,7 @@ const Header = ({ onSelectRestaurant }) => {
             ) : (
               <>
                 <Link href="/register" onClick={onToggle}>
-                  Registro
+                  Register
                 </Link>
                 <Link href="/login" onClick={onToggle}>
                   Login
@@ -252,7 +213,7 @@ const Header = ({ onSelectRestaurant }) => {
         </Box>
       </Collapse>
 
-      {/* Modales */}
+      {/* Modals */}
       <CreateRestaurantModal
         isOpen={isRestaurantModalOpen}
         onClose={closeRestaurantModal}

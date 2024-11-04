@@ -10,63 +10,49 @@ import {
   useColorMode,
   FormErrorMessage,
 } from "@chakra-ui/react";
-import { Link as RouterLink } from "react-router-dom"; // Used to navigate between routes
-import { useFormik } from "formik"; // Hook for managing form state
-import * as Yup from "yup"; // Used for form validation
-import Axios from "../api/Axios"; // Axios instance for making API calls
-import { useNavigate } from "react-router-dom"; // Used to programmatically navigate after successful login
-import toast from "react-hot-toast"; // For toast notifications
+import { Link as RouterLink } from "react-router-dom";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import Axios from "../api/Axios";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
 
-// Add onLoginSuccess as a prop
 const LoginForm = ({ onLoginSuccess }) => {
-  const navigate = useNavigate(); // Initialize the navigation hook
-  const { colorMode } = useColorMode(); // Chakra hook to detect light or dark mode
-  const isDark = colorMode === "dark"; // Boolean to check if the current mode is dark
+  const navigate = useNavigate();
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === "dark";
 
-  // Initialize formik to manage form data and validation
   const formik = useFormik({
     initialValues: {
-      email: "", // Email field initial value
-      password: "", // Password field initial value
+      email: "",
+      password: "",
     },
     validationSchema: Yup.object({
       email: Yup.string()
-        .email("Invalid email address") // Validation for correct email format
-        .required("Email is required"), // Email is mandatory
-      password: Yup.string().required("Password is required"), // Password is mandatory
+        .email("Invalid email address")
+        .required("Email is required"),
+      password: Yup.string().required("Password is required"),
     }),
-    validateOnChange: false, // Disable validation on every field change
+    validateOnChange: false,
     onSubmit: async (formData, { resetForm }) => {
-      // Handle form submission
       try {
-        // Make a POST request to the API to get the token
         const { data } = await Axios.post(
           "https://detip.pythonanywhere.com/api/token/",
           formData
         );
 
-        // Save the access and refresh tokens in local storage
         window.localStorage.setItem("access", data.access);
         window.localStorage.setItem("refresh", data.refresh);
 
-        // Call onLoginSuccess if the login is successful
         if (onLoginSuccess) {
-          await onLoginSuccess(); // Perform any additional actions after login
+          await onLoginSuccess();
         }
 
-        // If login is successful, navigate to the home page
         navigate("/home");
-
-        // Show a success toast message
         toast.success("Login successful!");
       } catch (error) {
-        // Handle login errors
         console.error("Login error:", error);
-
-        // Set a general error message for invalid email or password
         formik.setFieldError("general", "Invalid email or password");
-
-        // Show an error toast message
         toast.error("Login failed. Please check your credentials.");
       }
     },
@@ -74,12 +60,12 @@ const LoginForm = ({ onLoginSuccess }) => {
 
   return (
     <Box
-      width="60%" // Set the width of the form container
-      bg={isDark ? "gray.700" : "gray.50"} // Adjust background color based on theme
-      p={8} // Add padding
-      borderRadius="lg" // Round the corners of the container
+      width={{ base: "90%", sm: "80%", md: "60%", lg: "40%" }} // Responsive width for form container
+      bg={isDark ? "gray.700" : "gray.50"}
+      p={{ base: 6, md: 8 }} // Responsive padding
+      borderRadius="lg"
+      mx="auto" // Center form on the page
     >
-      {/* Display error message if general error exists */}
       {formik.errors.general && (
         <Text color="red.500" mb={4}>
           {formik.errors.general}
@@ -89,23 +75,22 @@ const LoginForm = ({ onLoginSuccess }) => {
       {/* Email Input */}
       <FormControl
         id="email"
-        mb={4} // Margin-bottom
-        isInvalid={formik.errors.email && formik.touched.email} // Show error if email is invalid
+        mb={4}
+        isInvalid={formik.errors.email && formik.touched.email}
       >
         <Input
           type="email"
           name="email"
-          value={formik.values.email} // Bind value to formik state
-          onChange={formik.handleChange} // Handle input changes
-          placeholder="Email address" // Placeholder text
-          bg={isDark ? "gray.800" : "white"} // Background color based on theme
-          color={isDark ? "white" : "black"} // Text color based on theme
-          _placeholder={{ color: isDark ? "gray.400" : "gray.600" }} // Placeholder text color
-          height="50px" // Set height of input field
-          fontSize="lg" // Set font size of input
-          width="100%" // Set input width to fill parent
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          placeholder="Email address"
+          bg={isDark ? "gray.800" : "white"}
+          color={isDark ? "white" : "black"}
+          _placeholder={{ color: isDark ? "gray.400" : "gray.600" }}
+          height="50px"
+          fontSize={{ base: "md", md: "lg" }} // Responsive font size
+          width="100%"
         />
-        {/* Display email validation errors */}
         <FormErrorMessage>{formik.errors.email}</FormErrorMessage>
       </FormControl>
 
@@ -113,28 +98,25 @@ const LoginForm = ({ onLoginSuccess }) => {
       <FormControl
         id="password"
         mb={4}
-        isInvalid={formik.errors.password && formik.touched.password} // Show error if password is invalid
+        isInvalid={formik.errors.password && formik.touched.password}
       >
         <Input
           type="password"
           name="password"
-          value={formik.values.password} // Bind value to formik state
-          onChange={formik.handleChange} // Handle input changes
-          placeholder="Password" // Placeholder text
-          bg={isDark ? "gray.800" : "white"} // Background color based on theme
-          color={isDark ? "white" : "black"} // Text color based on theme
-          _placeholder={{ color: isDark ? "gray.400" : "gray.600" }} // Placeholder text color
-          height="50px" // Set height of input field
-          fontSize="lg" // Set font size of input
-          width="100%" // Set input width to fill parent
+          value={formik.values.password}
+          onChange={formik.handleChange}
+          placeholder="Password"
+          bg={isDark ? "gray.800" : "white"}
+          color={isDark ? "white" : "black"}
+          _placeholder={{ color: isDark ? "gray.400" : "gray.600" }}
+          height="50px"
+          fontSize={{ base: "md", md: "lg" }}
+          width="100%"
         />
-        {/* Display password validation errors */}
         <FormErrorMessage>{formik.errors.password}</FormErrorMessage>
       </FormControl>
 
-      {/* Forgot Password Link */}
       <Flex justify="flex-start" mb={4}>
-        {/* Link to forgot password page */}
         <Link as={RouterLink} to="/forgot-password" color="orange.400">
           Forgot password?
         </Link>
@@ -142,19 +124,18 @@ const LoginForm = ({ onLoginSuccess }) => {
 
       {/* Login Button */}
       <Button
-        width="100%" // Full-width button
-        bg="orange.400" // Background color for button
-        color="white" // Button text color
-        _hover={{ bg: "orange.500" }} // Hover state styling
-        height="50px" // Button height
-        fontSize="lg" // Button text size
-        onClick={formik.handleSubmit} // Trigger form submission on click
-        mb={6} // Margin-bottom
+        width="100%"
+        bg="orange.400"
+        color="white"
+        _hover={{ bg: "orange.500" }}
+        height="50px"
+        fontSize={{ base: "md", md: "lg" }}
+        onClick={formik.handleSubmit}
+        mb={6}
       >
         SIGN IN
       </Button>
 
-      {/* Don't have an account text */}
       <Flex justify="flex-start" mb={4}>
         <Text color={isDark ? "gray.400" : "gray.500"}>
           Don't have an account?
@@ -163,15 +144,15 @@ const LoginForm = ({ onLoginSuccess }) => {
 
       {/* Sign Up Button */}
       <Button
-        width="100%" // Full-width button
-        bg="orange.400" // Background color for button
-        color="white" // Button text color
-        _hover={{ bg: "orange.500" }} // Hover state styling
-        height="50px" // Button height
-        fontSize="lg" // Button text size
-        as={RouterLink} // React Router link to signup page
+        width="100%"
+        bg="orange.400"
+        color="white"
+        _hover={{ bg: "orange.500" }}
+        height="50px"
+        fontSize={{ base: "md", md: "lg" }}
+        as={RouterLink}
         to="/register"
-        mb={6} // Margin-bottom
+        mb={6}
       >
         SIGN UP
       </Button>

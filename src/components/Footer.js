@@ -10,26 +10,27 @@ import {
 } from "@chakra-ui/react";
 
 const Footer = () => {
-  const { colorMode } = useColorMode(); // Get the current color mode
+  const { colorMode } = useColorMode();
 
   return (
     <Box
       bg={colorMode === "light" ? "gray.100" : "gray.900"}
       color={colorMode === "light" ? "gray.800" : "white"}
-      py={4}
+      py={{ base: 4, md: 6 }} // Padding adaptable
       px={4}
     >
       <Divider mb={4} />
       <Flex
-        direction={{ base: "column", md: "row" }} // Stack content vertically on mobile, horizontally on larger screens
-        align={{ base: "center", md: "center" }} // Align center on mobile and vertically center on larger screens
-        justify={{ base: "center", md: "space-between" }} // Center on mobile, space-between on larger screens
+        direction={{ base: "column", md: "row" }} // Vertical en móvil, horizontal en pantallas grandes
+        align="center"
+        justify={{ base: "center", md: "space-between" }} // Center en móvil, espacio entre elementos en pantallas grandes
         maxW="1200px"
         mx="auto"
         px={4}
       >
         {/* Copyright */}
         <Text
+          fontSize={{ base: "sm", md: "md" }} // Fuente adaptable
           mb={{ base: 2, md: 0 }}
           textAlign={{ base: "center", md: "left" }}
         >
@@ -38,9 +39,10 @@ const Footer = () => {
 
         {/* Footer Links */}
         <Stack
-          direction={{ base: "column", sm: "row" }} // Stack vertically on mobile, horizontally on larger screens
-          spacing={4}
+          direction={{ base: "column", sm: "row" }} // Vertical en móvil, horizontal en pantallas grandes
+          spacing={{ base: 2, md: 4 }} // Espaciado adaptable
           align="center"
+          fontSize={{ base: "sm", md: "md" }} // Fuente adaptable
         >
           <Link href="/privacy" _hover={{ textDecoration: "underline" }}>
             Privacy Policy

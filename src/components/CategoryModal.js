@@ -32,14 +32,12 @@ import {
   FaWineBottle,
   FaBeer,
 } from "react-icons/fa";
-// Import the necessary controllers
 import {
   createCategory,
   updateCategory,
   deleteCategory,
 } from "../api/controllers/Categories";
 
-// Icon list for category selection
 const iconList = [
   { name: "FaDrumstickBite", component: FaDrumstickBite },
   { name: "FaAppleAlt", component: FaAppleAlt },
@@ -70,32 +68,27 @@ const CategoryModal = ({
   const [category, setCategory] = useState({
     name: "",
     description: "",
-    icon_name: "", // Save the icon's name here
-    restaurant: selectedRestaurant?.id || null, // Assign the restaurant ID
+    icon_name: "",
+    restaurant: selectedRestaurant?.id || null,
   });
 
-    // Function to reset the form
-    const resetForm = () => {
-      setCategory({
-        name: "",
-        description: "",
-        icon_name: "",
-        restaurant: selectedRestaurant?.id,
-      });
-    };
+  const resetForm = () => {
+    setCategory({
+      name: "",
+      description: "",
+      icon_name: "",
+      restaurant: selectedRestaurant?.id,
+    });
+  };
 
-  // Pre-fill modal for editing
   useEffect(() => {
     if (initialData) {
-      setCategory({ ...initialData, restaurant: selectedRestaurant?.id }); // Add restaurant ID to the category
+      setCategory({ ...initialData, restaurant: selectedRestaurant?.id });
     } else {
-      resetForm(); // Reset for new category
+      resetForm();
     }
   }, [initialData, selectedRestaurant]);
 
-
-
-  // Handle form changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCategory((prevState) => ({
@@ -104,33 +97,29 @@ const CategoryModal = ({
     }));
   };
 
-  // Handle icon selection
   const handleIconSelect = (selectedIconName) => {
     setCategory((prevState) => ({
       ...prevState,
-      icon_name: selectedIconName, // Save icon name instead of the component
+      icon_name: selectedIconName,
     }));
   };
 
-  // Handle form submission (create or update category)
   const handleSubmit = async () => {
     try {
       const categoryPayload = {
         ...category,
         restaurant: selectedRestaurant?.id,
       };
-  
+
       if (initialData) {
-        // Update category if initialData exists
         await updateCategory(initialData.id, categoryPayload);
       } else {
-        // Create new category
         await createCategory(categoryPayload);
         if (onCategoryCreated) {
-          onCategoryCreated(); // Llama a onCategoryCreated después de crear
+          onCategoryCreated();
         }
       }
-  
+
       onSubmit(categoryPayload);
       resetForm();
       onClose();
@@ -139,13 +128,12 @@ const CategoryModal = ({
     }
   };
 
-  // Handle delete action
   const handleDelete = async () => {
     if (onDelete && initialData) {
       try {
-        await deleteCategory(initialData.id); // Call delete controller
-        onDelete(initialData.id); // Call parent delete handler to update the UI
-        onClose(); // Close modal after deletion
+        await deleteCategory(initialData.id);
+        onDelete(initialData.id);
+        onClose();
       } catch (error) {
         console.error("Error deleting category:", error);
       }
@@ -153,55 +141,57 @@ const CategoryModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xs", md: "md", lg: "lg" }}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>
+        <ModalHeader fontSize={{ base: "lg", md: "xl" }}>
           {initialData ? "Edit Category" : "Add New Category"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {/* Category Name Input */}
           <FormControl mb={4}>
-            <FormLabel>Category Name</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Category Name</FormLabel>
             <Input
               name="name"
               value={category.name}
               onChange={handleChange}
               placeholder="Category Name"
-              maxLength={100} // Limiting the input to 100 characters
+              maxLength={100}
+              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
-          {/* Description Input */}
           <FormControl mb={4}>
-            <FormLabel>Description</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Description</FormLabel>
             <Input
               name="description"
               value={category.description}
               onChange={handleChange}
               placeholder="Description"
-              maxLength={100} // Limiting the input to 100 characters
+              maxLength={100}
+              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
-          {/* Icon Selection */}
           <FormControl mb={4}>
-            <FormLabel>Select Icon</FormLabel>
-            <Grid templateColumns="repeat(5, 1fr)" gap={4}>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Select Icon</FormLabel>
+            <Grid templateColumns={{ base: "repeat(3, 1fr)", md: "repeat(5, 1fr)" }} gap={4}>
               {iconList.map((icon, index) => (
                 <Box
                   key={index}
                   p={2}
                   border="1px solid"
-                  borderColor={
-                    category.icon_name === icon.name ? "blue.400" : "gray.200"
-                  }
+                  borderColor={category.icon_name === icon.name ? "blue.400" : "gray.200"}
                   borderRadius="md"
                   cursor="pointer"
                   onClick={() => handleIconSelect(icon.name)}
+                  display="flex"
+                  justifyContent="center"
+                  alignItems="center"
+                  h={{ base: 10, md: 12 }}
+                  w={{ base: 10, md: 12 }}
                 >
-                  <Icon as={icon.component} w={6} h={6} />
+                  <Icon as={icon.component} w={{ base: 5, md: 6 }} h={{ base: 5, md: 6 }} />
                 </Box>
               ))}
             </Grid>
@@ -209,17 +199,15 @@ const CategoryModal = ({
         </ModalBody>
 
         <ModalFooter>
-          {/* Delete Button (only show if editing) */}
           {initialData && (
-            <Button colorScheme="red" mr="auto" onClick={handleDelete}>
+            <Button colorScheme="red" mr="auto" onClick={handleDelete} fontSize={{ base: "sm", md: "md" }}>
               Delete
             </Button>
           )}
-          {/* Save or Update Button */}
-          <Button colorScheme="blue" onClick={handleSubmit}>
+          <Button colorScheme="blue" onClick={handleSubmit} fontSize={{ base: "sm", md: "md" }}>
             {initialData ? "Update" : "Save"}
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} fontSize={{ base: "sm", md: "md" }}>
             Cancel
           </Button>
         </ModalFooter>

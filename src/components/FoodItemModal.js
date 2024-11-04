@@ -18,7 +18,7 @@ import {
   updateMenuItem,
   deleteMenuItem,
 } from "../api/controllers/MenuItems";
-import toast from "react-hot-toast"; // Import toast for notifications
+import toast from "react-hot-toast";
 
 const FoodItemModal = ({
   isOpen,
@@ -32,34 +32,30 @@ const FoodItemModal = ({
     name: "",
     description: "",
     price: "",
-    image: null, // Now storing the file instead of URL
+    image: null,
     category: "",
   });
-    // Reset form fields
-    const resetForm = () => {
-      setFoodItem({
-        name: "",
-        description: "",
-        price: "",
-        image: null,
-        category: "",
-      });
-    };
-  
 
-  // Pre-fill the form if editing an existing item
+  const resetForm = () => {
+    setFoodItem({
+      name: "",
+      description: "",
+      price: "",
+      image: null,
+      category: "",
+    });
+  };
+
   useEffect(() => {
     if (initialData) {
       setFoodItem({
         ...initialData,
-        image: null, // Reset file input when editing
+        image: null,
       });
     } else {
-      // Reset form when switching to add mode
       resetForm();
     }
   }, [initialData]);
-
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -69,47 +65,43 @@ const FoodItemModal = ({
     }));
   };
 
-  // Handle file change
   const handleFileChange = (e) => {
     setFoodItem((prevState) => ({
       ...prevState,
-      image: e.target.files[0], // Store the selected file
+      image: e.target.files[0],
     }));
   };
 
-  // Handle form submission (create or update)
   const handleSubmit = async () => {
     try {
       const foodItemPayload = {
         ...foodItem,
       };
 
+      // Uncomment these lines to enable API integration
       // if (initialData) {
-      //   // If editing, call updateMenuItem
       //   await updateMenuItem(initialData.id, foodItemPayload);
-      //   toast.success("Item updated successfully!"); // Success notification
+      //   toast.success("Item updated successfully!");
       // } else {
-      //   // If creating, call createMenuItem
       //   await createMenuItem(foodItemPayload);
-      //   toast.success("Item added successfully!"); // Success notification
+      //   toast.success("Item added successfully!");
       // }
 
-      onSubmit(foodItemPayload); // Notify parent of the submission
-      resetForm(); // Clear the form after submission
-      onClose(); // Close the modal
+      onSubmit(foodItemPayload);
+      resetForm();
+      onClose();
     } catch (error) {
       console.error("Error submitting item form:", error);
-      toast.error("Error saving item. Please try again."); // Error notification
+      toast.error("Error saving item. Please try again.");
     }
   };
 
-  // Handle deletion of the food item
   const handleDelete = async () => {
     try {
       if (onDelete && initialData) {
-        await deleteMenuItem(initialData.id); // Delete item from backend
-        onDelete(initialData.id); // Pass the deleted item's ID to the parent component
-        onClose(); // Close modal after deletion
+        await deleteMenuItem(initialData.id);
+        onDelete(initialData.id);
+        onClose();
       }
     } catch (error) {
       console.error("Error deleting menu item:", error);
@@ -117,38 +109,40 @@ const FoodItemModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose}>
+    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xs", md: "md", lg: "lg" }}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>
+        <ModalHeader fontSize={{ base: "md", md: "lg" }}>
           {initialData ? "Edit Food Item" : "Add New Food Item"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <FormControl mb={4}>
-            <FormLabel>Item Name</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Item Name</FormLabel>
             <Input
               name="name"
               value={foodItem.name}
               onChange={handleChange}
               placeholder="Item Name"
-              maxLength={100} // Limiting the input to 100 characters
+              maxLength={100}
+              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Description</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Description</FormLabel>
             <Input
               name="description"
               value={foodItem.description}
               onChange={handleChange}
               placeholder="Description"
-              maxLength={100} // Limiting the input to 100 characters
+              maxLength={100}
+              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Price</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Price</FormLabel>
             <Input
               name="price"
               value={foodItem.price}
@@ -156,25 +150,28 @@ const FoodItemModal = ({
               placeholder="Price"
               type="number"
               step="0.01"
+              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Image File</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Image File</FormLabel>
             <Input
               name="image"
               type="file"
-              onChange={handleFileChange} // Handle file input change
+              onChange={handleFileChange}
+              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel>Category</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>Category</FormLabel>
             <Select
               placeholder="Select Category"
               name="category"
               value={foodItem.category}
               onChange={handleChange}
+              fontSize={{ base: "sm", md: "md" }}
             >
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -187,14 +184,14 @@ const FoodItemModal = ({
 
         <ModalFooter>
           {initialData && (
-            <Button colorScheme="red" mr={3} onClick={handleDelete}>
+            <Button colorScheme="red" mr={3} onClick={handleDelete} fontSize={{ base: "sm", md: "md" }}>
               Delete
             </Button>
           )}
-          <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
+          <Button colorScheme="blue" mr={3} onClick={handleSubmit} fontSize={{ base: "sm", md: "md" }}>
             Save
           </Button>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} fontSize={{ base: "sm", md: "md" }}>
             Cancel
           </Button>
         </ModalFooter>
