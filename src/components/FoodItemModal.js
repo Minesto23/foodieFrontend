@@ -13,13 +13,21 @@ import {
   Input,
   Select,
 } from "@chakra-ui/react";
-import {
-  createMenuItem,
-  updateMenuItem,
-  deleteMenuItem,
-} from "../api/controllers/MenuItems";
+import { deleteMenuItem } from "../api/controllers/MenuItems";
 import toast from "react-hot-toast";
 
+/**
+ * Modal para gestionar elementos del menú (crear, editar, eliminar).
+ *
+ * @param {Object} props - Propiedades del componente.
+ * @param {boolean} props.isOpen - Indica si el modal está abierto.
+ * @param {function} props.onClose - Función para cerrar el modal.
+ * @param {function} props.onSubmit - Función a ejecutar al enviar el formulario.
+ * @param {Object} [props.initialData=null] - Datos iniciales del elemento (para edición).
+ * @param {function} props.onDelete - Función para eliminar el elemento.
+ * @param {Array} props.categories - Lista de categorías disponibles.
+ * @returns {React.Component} Componente FoodItemModal.
+ */
 const FoodItemModal = ({
   isOpen,
   onClose,
@@ -36,6 +44,9 @@ const FoodItemModal = ({
     category: "",
   });
 
+  /**
+   * Restablece el formulario a su estado inicial.
+   */
   const resetForm = () => {
     setFoodItem({
       name: "",
@@ -46,23 +57,30 @@ const FoodItemModal = ({
     });
   };
 
+  // Configurar datos iniciales si existen
   useEffect(() => {
     if (initialData) {
       setFoodItem({
         ...initialData,
-        image: null,
+        image: null, // La imagen no se pasa en la edición
       });
     } else {
       resetForm();
     }
   }, [initialData]);
 
+  // Restablecer el formulario cuando el modal se cierra
   useEffect(() => {
     if (!isOpen) {
       resetForm();
     }
   }, [isOpen]);
 
+  /**
+   * Maneja los cambios en los campos del formulario.
+   *
+   * @param {Object} e - Evento de cambio.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFoodItem((prevState) => ({
@@ -71,6 +89,11 @@ const FoodItemModal = ({
     }));
   };
 
+  /**
+   * Maneja el cambio en el campo de archivo (imagen).
+   *
+   * @param {Object} e - Evento de cambio.
+   */
   const handleFileChange = (e) => {
     setFoodItem((prevState) => ({
       ...prevState,
@@ -78,30 +101,36 @@ const FoodItemModal = ({
     }));
   };
 
+  /**
+   * Envía los datos del formulario para crear o actualizar el elemento del menú.
+   */
   const handleSubmit = async () => {
     try {
-      const foodItemPayload = {
-        ...foodItem,
-      };
+      const foodItemPayload = { ...foodItem };
 
-      // Uncomment these lines to enable API integration
+      // Descomenta las líneas para habilitar integración con la API
       // if (initialData) {
       //   await updateMenuItem(initialData.id, foodItemPayload);
-      //   toast.success("Item updated successfully!");
+      //   toast.success("Elemento actualizado con éxito.");
       // } else {
       //   await createMenuItem(foodItemPayload);
-      //   toast.success("Item added successfully!");
+      //   toast.success("Elemento creado con éxito.");
       // }
 
       onSubmit(foodItemPayload);
       resetForm();
       onClose();
     } catch (error) {
-      console.error("Error submitting item form:", error);
-      toast.error("Error saving item. Please try again.");
+      console.error("Error al enviar el formulario:", error);
+      toast.error(
+        "Error al guardar el elemento. Por favor, inténtalo de nuevo."
+      );
     }
   };
 
+  /**
+   * Elimina el elemento actual.
+   */
   const handleDelete = async () => {
     try {
       if (onDelete && initialData) {
@@ -110,7 +139,10 @@ const FoodItemModal = ({
         onClose();
       }
     } catch (error) {
-      console.error("Error deleting menu item:", error);
+      console.error("Error al eliminar el elemento:", error);
+      toast.error(
+        "Error al eliminar el elemento. Por favor, inténtalo de nuevo."
+      );
     }
   };
 
@@ -118,74 +150,66 @@ const FoodItemModal = ({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      size={{ base: "xs", md: "md", lg: "lg" }}
+      size={{ base: "xs", md: "md", lg: "lg" }} // Tamaño adaptativo del modal
     >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize={{ base: "md", md: "lg" }}>
-          {initialData ? "Edit Food Item" : "Add New Food Item"}
+          {initialData ? "Editar Elemento" : "Nuevo Elemento"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
+          {/* Nombre del elemento */}
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Item Name</FormLabel>
+            <FormLabel>Nombre del Elemento</FormLabel>
             <Input
               name="name"
               value={foodItem.name}
               onChange={handleChange}
-              placeholder="Item Name"
+              placeholder="Nombre del Elemento"
               maxLength={100}
-              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
+          {/* Descripción */}
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>
-              Description
-            </FormLabel>
+            <FormLabel>Descripción</FormLabel>
             <Input
               name="description"
               value={foodItem.description}
               onChange={handleChange}
-              placeholder="Description"
+              placeholder="Descripción"
               maxLength={100}
-              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
+          {/* Precio */}
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Price</FormLabel>
+            <FormLabel>Precio</FormLabel>
             <Input
               name="price"
               value={foodItem.price}
               onChange={handleChange}
-              placeholder="Price"
+              placeholder="Precio"
               type="number"
               step="0.01"
-              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
 
+          {/* Imagen */}
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>
-              Image File
-            </FormLabel>
-            <Input
-              name="image"
-              type="file"
-              onChange={handleFileChange}
-              fontSize={{ base: "sm", md: "md" }}
-            />
+            <FormLabel>Imagen</FormLabel>
+            <Input name="image" type="file" onChange={handleFileChange} />
           </FormControl>
 
+          {/* Categoría */}
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Category</FormLabel>
+            <FormLabel>Categoría</FormLabel>
             <Select
-              placeholder="Select Category"
+              placeholder="Seleccionar Categoría"
               name="category"
               value={foodItem.category}
               onChange={handleChange}
-              fontSize={{ base: "sm", md: "md" }}
             >
               {categories.map((category) => (
                 <option key={category.id} value={category.id}>
@@ -198,29 +222,15 @@ const FoodItemModal = ({
 
         <ModalFooter>
           {initialData && (
-            <Button
-              colorScheme="red"
-              mr={3}
-              onClick={handleDelete}
-              fontSize={{ base: "sm", md: "md" }}
-            >
-              Delete
+            <Button colorScheme="red" mr={3} onClick={handleDelete}>
+              Eliminar
             </Button>
           )}
-          <Button
-            colorScheme="blue"
-            mr={3}
-            onClick={handleSubmit}
-            fontSize={{ base: "sm", md: "md" }}
-          >
-            Save
+          <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
+            Guardar
           </Button>
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            fontSize={{ base: "sm", md: "md" }}
-          >
-            Cancel
+          <Button variant="ghost" onClick={onClose}>
+            Cancelar
           </Button>
         </ModalFooter>
       </ModalContent>

@@ -1,89 +1,118 @@
 import Axios from "../Axios";
 
-// Obtener todos los restaurantes filtrados por usuario
+/**
+ * Obtiene todos los restaurantes disponibles en el sistema.
+ *
+ * @returns {Promise<Array>} Lista de restaurantes.
+ * @throws {Error} Si ocurre un error al realizar la solicitud.
+ */
 export const getAllRestaurants = async () => {
   try {
     const response = await Axios.get("/api/restaurants/");
-    console.log(response,'controller');
-    
+    console.log(response, "controller");
     return response.data;
   } catch (error) {
-    console.error("Error fetching restaurants:", error);
+    console.error("Error al obtener los restaurantes:", error);
     throw error;
   }
 };
 
-// Crear un nuevo restaurante
+/**
+ * Crea un nuevo restaurante en el sistema.
+ *
+ * @param {Object} restaurantData - Datos del restaurante a crear.
+ * @returns {Promise<Object>} El restaurante creado.
+ * @throws {Error} Si ocurre un error al realizar la solicitud.
+ */
 export const createRestaurant = async (restaurantData) => {
   try {
     const formData = new FormData();
 
-    // Agregar todos los campos al FormData, incluyendo el archivo (logo)
+    // Agregar todos los campos al FormData, incluyendo el archivo (logo).
     for (const key in restaurantData) {
       if (restaurantData[key] !== null) {
         formData.append(key, restaurantData[key]);
       }
     }
+
     const response = await Axios.post("/api/restaurants/", formData, {
       headers: {
-        "Content-Type": "multipart/form-data",
+        "Content-Type": "multipart/form-data", // Especificar que se envían archivos.
       },
     });
     return response.data;
   } catch (error) {
-    console.error("Error creating restaurant:", error);
+    console.error("Error al crear el restaurante:", error);
     throw error;
   }
 };
 
-// Obtener un solo restaurante por ID
+/**
+ * Obtiene un restaurante específico por su ID.
+ *
+ * @param {string} restaurantId - ID del restaurante a buscar.
+ * @returns {Promise<Object>} El restaurante encontrado.
+ * @throws {Error} Si ocurre un error al realizar la solicitud o si no se encuentra el restaurante.
+ */
 export const getRestaurantById = async (restaurantId) => {
   try {
     const response = await Axios.get(`/api/restaurants/${restaurantId}/`);
     return response.data;
   } catch (error) {
-    console.error("Error fetching restaurant:", error);
+    console.error("Error al obtener el restaurante:", error);
     throw error;
   }
 };
 
-// Actualizar un restaurante por ID
+/**
+ * Actualiza un restaurante existente por su ID.
+ *
+ * @param {string} restaurantId - ID del restaurante a actualizar.
+ * @param {Object} updatedData - Datos actualizados del restaurante.
+ * @returns {Promise<Object>} El restaurante actualizado.
+ * @throws {Error} Si ocurre un error al realizar la solicitud.
+ */
 export const updateRestaurant = async (restaurantId, updatedData) => {
   try {
     const formData = new FormData();
 
-    // Agregar todos los campos al FormData, incluyendo el archivo (logo)
+    // Agregar todos los campos al FormData, incluyendo el archivo (logo).
     for (const key in updatedData) {
       if (updatedData[key] !== null) {
         formData.append(key, updatedData[key]);
       }
     }
 
-    // Enviar la solicitud PUT con FormData
     const response = await Axios.put(
       `/api/restaurants/${restaurantId}/`,
-      formData, // FormData se encarga del archivo correctamente
+      formData,
       {
         headers: {
-          "Content-Type": "multipart/form-data", // Especificar multipart para enviar archivos
+          "Content-Type": "multipart/form-data", // Especificar que se envían archivos.
         },
       }
     );
 
     return response.data;
   } catch (error) {
-    console.error("Error actualizando el restaurante:", error);
+    console.error("Error al actualizar el restaurante:", error);
     throw error;
   }
 };
 
-// Eliminar un restaurante por ID
+/**
+ * Elimina un restaurante existente por su ID.
+ *
+ * @param {string} restaurantId - ID del restaurante a eliminar.
+ * @returns {Promise<Object>} Respuesta de eliminación.
+ * @throws {Error} Si ocurre un error al realizar la solicitud.
+ */
 export const deleteRestaurant = async (restaurantId) => {
   try {
     const response = await Axios.delete(`/api/restaurants/${restaurantId}/`);
     return response.data;
   } catch (error) {
-    console.error("Error deleting restaurant:", error);
+    console.error("Error al eliminar el restaurante:", error);
     throw error;
   }
 };

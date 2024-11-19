@@ -27,8 +27,18 @@ import {
   deleteRestaurant,
 } from "../api/controllers/Restaurants";
 
+/**
+ * Componente RestaurantModal
+ *
+ * Muestra un modal para agregar, editar o eliminar un restaurante.
+ *
+ * @param {boolean} isOpen - Indica si el modal está abierto.
+ * @param {function} onClose - Función para cerrar el modal.
+ * @param {object} [initialData=null] - Datos iniciales del restaurante.
+ */
 const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
   const [loading, setLoading] = useState(false);
+
   const [restaurantDetails, setRestaurantDetails] = useState({
     name: "",
     location: "",
@@ -41,20 +51,23 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
   });
 
   const categories = [
-    { value: "panaderia", label: "Panaderia" },
+    { value: "panaderia", label: "Panadería" },
     { value: "carne_pescado", label: "Carne y Pescado" },
     { value: "cafeteria", label: "Cafetería" },
     { value: "bar", label: "Bar" },
-    // Add more categories...
+    // Agregar más categorías según sea necesario...
   ];
 
   const services = [
-    { value: "order_online", label: "Order Online" },
-    { value: "delivery", label: "Delivery" },
-    { value: "pick_up", label: "Pick up" },
-    // Add more services...
+    { value: "order_online", label: "Ordenar Online" },
+    { value: "delivery", label: "Entrega" },
+    { value: "pick_up", label: "Recoger en Tienda" },
+    // Agregar más servicios según sea necesario...
   ];
 
+  /**
+   * Resetea el formulario a los valores iniciales.
+   */
   const resetForm = () => {
     setRestaurantDetails({
       name: "",
@@ -72,13 +85,18 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
     if (initialData) {
       setRestaurantDetails({
         ...initialData,
-        logo: null, // Exclude the logo for updates
+        logo: null, // Excluir el logo para actualizaciones
       });
     } else {
       resetForm();
     }
   }, [initialData]);
 
+  /**
+   * Maneja los cambios en los campos del formulario.
+   *
+   * @param {object} e - Evento de cambio.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRestaurantDetails((prev) => ({
@@ -87,6 +105,12 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
     }));
   };
 
+  /**
+   * Alterna las opciones de tipo o servicios en el formulario.
+   *
+   * @param {string} value - Valor de la opción.
+   * @param {string} key - Clave del campo en el estado.
+   */
   const handleToggle = (value, key) => {
     setRestaurantDetails((prev) => {
       const currentValues = Array.isArray(prev[key]) ? prev[key] : [];
@@ -97,50 +121,61 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
     });
   };
 
+  /**
+   * Maneja la acción de guardar (crear o actualizar) un restaurante.
+   */
   const handleSubmit = async () => {
-    toast.loading("Processing...");
+    toast.loading("Procesando...");
     setLoading(true);
 
     try {
       if (initialData) {
         await updateRestaurant(initialData.id, restaurantDetails);
-        toast.success("Restaurant updated successfully!");
+        toast.success("¡Restaurante actualizado exitosamente!");
       } else {
         await createRestaurant(restaurantDetails);
-        toast.success("Restaurant created successfully!");
+        toast.success("¡Restaurante creado exitosamente!");
       }
-
       resetForm();
       onClose();
     } catch (error) {
-      console.error("Submission Error:", error);
-      toast.error("Failed to save the restaurant. Please try again.");
+      console.error("Error al enviar los datos:", error);
+      toast.error("Error al guardar el restaurante. Intente de nuevo.");
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Maneja la acción de eliminar un restaurante.
+   */
   const handleDelete = async () => {
     if (!initialData) return;
     setLoading(true);
 
     try {
       await deleteRestaurant(initialData.id);
-      toast.success("Restaurant deleted successfully!");
+      toast.success("¡Restaurante eliminado exitosamente!");
       resetForm();
       onClose();
     } catch (error) {
-      console.error("Deletion Error:", error);
-      toast.error("Failed to delete the restaurant. Please try again.");
+      console.error("Error al eliminar el restaurante:", error);
+      toast.error("Error al eliminar el restaurante. Intente de nuevo.");
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Renderiza una lista de switches para seleccionar opciones.
+   *
+   * @param {array} list - Lista de opciones.
+   * @param {string} key - Clave del campo en el estado.
+   */
   const renderSwitchList = (list, key) => (
     <Menu>
       <MenuButton as={Button} rightIcon={<ChevronDownIcon />} width="100%">
-        Select Options
+        Seleccionar Opciones
       </MenuButton>
       <MenuList>
         <SimpleGrid columns={3} spacing={2} p={2}>
@@ -166,30 +201,30 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
       <ModalOverlay />
       <ModalContent>
         <ModalHeader>
-          {initialData ? "Edit Restaurant" : "Add Restaurant"}
+          {initialData ? "Editar Restaurante" : "Agregar Restaurante"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <FormControl mb={4}>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>Nombre</FormLabel>
             <Input
               name="name"
               value={restaurantDetails.name}
               onChange={handleChange}
-              placeholder="Restaurant Name"
+              placeholder="Nombre del Restaurante"
             />
           </FormControl>
           <FormControl mb={4}>
-            <FormLabel>Location</FormLabel>
+            <FormLabel>Ubicación</FormLabel>
             <Input
               name="location"
               value={restaurantDetails.location}
               onChange={handleChange}
-              placeholder="123 Main Street"
+              placeholder="123 Calle Principal"
             />
           </FormControl>
           <FormControl mb={4}>
-            <FormLabel>Opening Hours</FormLabel>
+            <FormLabel>Horario de Apertura</FormLabel>
             <Input
               name="opening_hours"
               value={restaurantDetails.opening_hours}
@@ -198,16 +233,16 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
             />
           </FormControl>
           <FormControl mb={4}>
-            <FormLabel>Contact Email</FormLabel>
+            <FormLabel>Correo Electrónico</FormLabel>
             <Input
               name="contact_email"
               value={restaurantDetails.contact_email}
               onChange={handleChange}
-              placeholder="email@example.com"
+              placeholder="correo@ejemplo.com"
             />
           </FormControl>
           <FormControl mb={4}>
-            <FormLabel>Contact Phone</FormLabel>
+            <FormLabel>Teléfono</FormLabel>
             <Input
               name="contact_phone"
               value={restaurantDetails.contact_phone}
@@ -216,11 +251,11 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
             />
           </FormControl>
           <FormControl mb={4}>
-            <FormLabel>Restaurant Type</FormLabel>
+            <FormLabel>Tipo de Restaurante</FormLabel>
             {renderSwitchList(categories, "restaurant_type")}
           </FormControl>
           <FormControl mb={4}>
-            <FormLabel>Services</FormLabel>
+            <FormLabel>Servicios</FormLabel>
             {renderSwitchList(services, "services")}
           </FormControl>
         </ModalBody>
@@ -232,14 +267,14 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
               onClick={handleDelete}
               isLoading={loading}
             >
-              Delete
+              Eliminar
             </Button>
           )}
           <Button colorScheme="blue" onClick={handleSubmit} isLoading={loading}>
-            {initialData ? "Save Changes" : "Add Restaurant"}
+            {initialData ? "Guardar Cambios" : "Agregar Restaurante"}
           </Button>
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
         </ModalFooter>
       </ModalContent>

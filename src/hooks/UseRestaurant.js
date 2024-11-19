@@ -1,102 +1,34 @@
 import { useCallback, useState } from "react";
-// import { MainContext } from "../context/MainContext";
-import {
-  getAllRestaurants,
-  // createRestaurant,
-  // // updateRestaurant,
-  // deleteRestaurant,
-} from "../api/controllers/Restaurants";
-// import axios from "../api/Axios"; // Asumiendo que Axios está configurado para tu API
+import { getAllRestaurants } from "../api/controllers/Restaurants";
 
-// export const useRestaurants = () => {
-//   // const { loading, setLoading } = useContext(MainContext);
-
-//   // const addRestaurant = useCallback(
-//   //   async (newRestaurant) => {
-//   //     try {
-//   //       const data = await createRestaurant(newRestaurant);
-//   //       setRestaurants((prevRestaurants) => [...prevRestaurants, data]);
-//   //     } catch (error) {
-//   //       console.error("Error creating restaurant:", error);
-//   //     }
-//   //   },
-//   //   [setRestaurants]
-//   // );
-
-//   // // const modifyRestaurant = useCallback(
-//   // //   async (id, updatedData) => {
-//   // //     try {
-//   // //       const data = await updateRestaurant(id, updatedData);
-//   // //       setRestaurants(prevRestaurants =>
-//   // //         prevRestaurants.map(restaurant =>
-//   // //           restaurant.id === id ? data : restaurant
-//   // //         )
-//   // //       );
-//   // //     } catch (error) {
-//   // //       console.error('Error updating restaurant:', error);
-//   // //     }
-//   // //   },
-//   // //   [setRestaurants]
-//   // // );
-//   // const modifyRestaurant = async (id, updatedData) => {
-//   //   try {
-//   //     const response = await axios.put(`/api/restaurants/${id}/`, updatedData);
-//   //     setRestaurants((prevRestaurants) =>
-//   //       prevRestaurants.map((restaurant) =>
-//   //         restaurant.id === id ? response.data : restaurant
-//   //       )
-//   //     );
-//   //     return response.data;
-//   //   } catch (error) {
-//   //     console.error(
-//   //       "Error updating restaurant:",
-//   //       error.response ? error.response.data : error.message
-//   //     );
-//   //     throw error;
-//   //   }
-//   // };
-
-//   // const removeRestaurant = useCallback(
-//   //   async (id) => {
-//   //     try {
-//   //       await deleteRestaurant(id);
-//   //       setRestaurants((prevRestaurants) =>
-//   //         prevRestaurants.filter((restaurant) => restaurant.id !== id)
-//   //       );
-//   //     } catch (error) {
-//   //       console.error("Error deleting restaurant:", error);
-//   //     }
-//   //   },
-//   //   [setRestaurants]
-//   // );
-
-//   return {
-//     // addRestaurant,
-//     // modifyRestaurant,
-//     // removeRestaurant,
-//   };
-// };
-
+/**
+ * Hook para manejar las operaciones relacionadas con los restaurantes.
+ *
+ * @returns {Object} - Estado y funciones para operar sobre los restaurantes.
+ */
 export const UseRestaurant = () => {
-  const [restaurants, setRestaurants] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [restaurants, setRestaurants] = useState([]); // Estado para almacenar la lista de restaurantes
+  const [loading, setLoading] = useState(false); // Estado para indicar carga
 
+  /**
+   * Fetch all restaurants desde la API.
+   */
   const fetchAllRestaurants = useCallback(async () => {
-    setLoading(true); // Cambia el estado de loading a true al iniciar la petición
+    setLoading(true); // Cambiar el estado a cargando
     try {
-      const data = await getAllRestaurants(); // Llamada al controlador
-      setRestaurants(data); // Actualiza el estado con los datos obtenidos
-      console.log(data, "hook");
+      const data = await getAllRestaurants(); // Llamada al controlador para obtener restaurantes
+      setRestaurants(data); // Actualizar el estado con los datos obtenidos
+      console.log(data, "hook"); // Depuración opcional
     } catch (error) {
-      console.error("Error fetching restaurants:", error);
+      console.error("Error fetching restaurants:", error); // Manejo básico de errores
     } finally {
-      setLoading(false); // Asegura que el loading vuelva a false
+      setLoading(false); // Asegurar que el estado de carga se restablezca
     }
   }, []);
 
   return {
-    fetchAllRestaurants,
-    restaurants,
-    loading,
+    fetchAllRestaurants, // Función para obtener todos los restaurantes
+    restaurants, // Lista de restaurantes
+    loading, // Indicador de carga
   };
 };

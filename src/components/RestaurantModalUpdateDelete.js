@@ -17,14 +17,25 @@ import toast from "react-hot-toast";
 import {
   updateRestaurant,
   deleteRestaurant,
-} from "../api/controllers/Restaurants"; // Import the update and delete functions
+} from "../api/controllers/Restaurants";
 
+/**
+ * Componente `UpdateDeleteRestaurantModal`
+ *
+ * Permite a los usuarios editar o eliminar un restaurante.
+ *
+ * @param {boolean} isOpen - Controla la visibilidad del modal.
+ * @param {function} onClose - Función para cerrar el modal.
+ * @param {object} initialData - Datos iniciales del restaurante para editar.
+ * @param {function} onDeleteSuccess - Callback que se ejecuta tras eliminar con éxito.
+ * @param {function} onUpdateSuccess - Callback que se ejecuta tras actualizar con éxito.
+ */
 const UpdateDeleteRestaurantModal = ({
-  isOpen, // Controls the visibility of the modal
-  onClose, // Function to close the modal
-  initialData, // The restaurant data to edit
-  onDeleteSuccess, // Callback for successful deletion
-  onUpdateSuccess, // Callback for successful update
+  isOpen,
+  onClose,
+  initialData,
+  onDeleteSuccess,
+  onUpdateSuccess,
 }) => {
   const [restaurantDetails, setRestaurantDetails] = useState({
     name: "",
@@ -32,20 +43,24 @@ const UpdateDeleteRestaurantModal = ({
     opening_hours: "",
     contact_email: "",
     contact_phone: "",
-    logo: null, // To handle the logo file uploads
+    logo: null, // Archivo del logo
   });
 
-  // Populate the form with the initial restaurant data for editing
+  // Rellenar el formulario con los datos iniciales
   useEffect(() => {
     if (initialData) {
       setRestaurantDetails({
         ...initialData,
-        logo: null, // Reset the logo file to avoid passing old data
+        logo: null, // Evitar pasar datos antiguos del logo
       });
     }
   }, [initialData]);
 
-  // Handle form field changes
+  /**
+   * Maneja los cambios en los campos del formulario.
+   *
+   * @param {object} e - Evento del cambio en el input.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setRestaurantDetails((prevState) => ({
@@ -54,7 +69,11 @@ const UpdateDeleteRestaurantModal = ({
     }));
   };
 
-  // Handle logo file upload
+  /**
+   * Maneja el cambio en el campo de carga de archivos.
+   *
+   * @param {object} e - Evento del cambio en el campo de archivo.
+   */
   const handleFileChange = (e) => {
     setRestaurantDetails((prevState) => ({
       ...prevState,
@@ -62,32 +81,36 @@ const UpdateDeleteRestaurantModal = ({
     }));
   };
 
-  // Submit form for updating the restaurant
+  /**
+   * Envía el formulario para actualizar los datos del restaurante.
+   */
   const handleSubmit = async () => {
     try {
       const updatedRestaurant = await updateRestaurant(
         initialData.id,
         restaurantDetails
       );
-      toast.success("Restaurant updated successfully!");
-      onUpdateSuccess(updatedRestaurant); // Callback to update the UI after success
-      onClose(); // Close the modal
+      toast.success("¡Restaurante actualizado con éxito!");
+      onUpdateSuccess(updatedRestaurant); // Actualizar la interfaz tras el éxito
+      onClose();
     } catch (error) {
-      console.error("Error updating restaurant:", error);
-      toast.error("Error updating restaurant.");
+      console.error("Error al actualizar el restaurante:", error);
+      toast.error("Error al actualizar el restaurante.");
     }
   };
 
-  // Handle deletion of the restaurant
+  /**
+   * Maneja la eliminación del restaurante.
+   */
   const handleDelete = async () => {
     try {
       await deleteRestaurant(initialData.id);
-      toast.success("Restaurant deleted successfully!");
-      onDeleteSuccess(initialData.id); // Callback to update the UI after deletion
-      onClose(); // Close the modal
+      toast.success("¡Restaurante eliminado con éxito!");
+      onDeleteSuccess(initialData.id); // Actualizar la interfaz tras la eliminación
+      onClose();
     } catch (error) {
-      console.error("Error deleting restaurant:", error);
-      toast.error("Error deleting restaurant.");
+      console.error("Error al eliminar el restaurante:", error);
+      toast.error("Error al eliminar el restaurante.");
     }
   };
 
@@ -95,34 +118,34 @@ const UpdateDeleteRestaurantModal = ({
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>Edit or Delete Restaurant</ModalHeader>
+        <ModalHeader>Editar o Eliminar Restaurante</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          {/* Restaurant Name Input */}
+          {/* Nombre del Restaurante */}
           <FormControl mb={4}>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>Nombre</FormLabel>
             <Input
               name="name"
               value={restaurantDetails.name}
               onChange={handleChange}
-              placeholder="Restaurant Name"
+              placeholder="Nombre del Restaurante"
             />
           </FormControl>
 
-          {/* Restaurant Location Input */}
+          {/* Ubicación */}
           <FormControl mb={4}>
-            <FormLabel>Location</FormLabel>
+            <FormLabel>Ubicación</FormLabel>
             <Input
               name="location"
               value={restaurantDetails.location}
               onChange={handleChange}
-              placeholder="123 Main St"
+              placeholder="123 Calle Principal"
             />
           </FormControl>
 
-          {/* Restaurant Opening Hours Input */}
+          {/* Horario de Apertura */}
           <FormControl mb={4}>
-            <FormLabel>Opening Hours</FormLabel>
+            <FormLabel>Horario de Apertura</FormLabel>
             <Input
               name="opening_hours"
               value={restaurantDetails.opening_hours}
@@ -131,21 +154,21 @@ const UpdateDeleteRestaurantModal = ({
             />
           </FormControl>
 
-          {/* Contact Email Input */}
+          {/* Email de Contacto */}
           <FormControl mb={4}>
-            <FormLabel>Contact Email</FormLabel>
+            <FormLabel>Email de Contacto</FormLabel>
             <Input
               name="contact_email"
               type="email"
               value={restaurantDetails.contact_email}
               onChange={handleChange}
-              placeholder="contact@restaurant.com"
+              placeholder="contacto@restaurante.com"
             />
           </FormControl>
 
-          {/* Contact Phone Input */}
+          {/* Teléfono de Contacto */}
           <FormControl mb={4}>
-            <FormLabel>Contact Phone</FormLabel>
+            <FormLabel>Teléfono de Contacto</FormLabel>
             <Input
               name="contact_phone"
               value={restaurantDetails.contact_phone}
@@ -154,31 +177,32 @@ const UpdateDeleteRestaurantModal = ({
             />
           </FormControl>
 
-          {/* Logo File Upload */}
+          {/* Carga de Logo */}
           <FormControl mb={4}>
             <FormLabel>Logo</FormLabel>
             <Input type="file" name="logo" onChange={handleFileChange} />
           </FormControl>
 
-          {/* Confirm Deletion */}
+          {/* Nota sobre la eliminación */}
           <Text color="red.500" mt={4}>
-            Note: Deleting this restaurant will remove all associated data.
+            Nota: Eliminar este restaurante eliminará todos los datos asociados.
           </Text>
         </ModalBody>
 
         <ModalFooter>
-          {/* Delete Button */}
+          {/* Botón de Eliminar */}
           <Button colorScheme="red" mr={3} onClick={handleDelete}>
-            Delete
+            Eliminar
           </Button>
 
-          {/* Save Changes Button */}
+          {/* Botón de Guardar Cambios */}
           <Button colorScheme="blue" mr={3} onClick={handleSubmit}>
-            Save Changes
+            Guardar Cambios
           </Button>
 
+          {/* Botón de Cancelar */}
           <Button variant="ghost" onClick={onClose}>
-            Cancel
+            Cancelar
           </Button>
         </ModalFooter>
       </ModalContent>

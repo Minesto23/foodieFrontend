@@ -1,13 +1,16 @@
 import React from "react";
-import {
-  Box,
-  Image,
-  Text,
-  Flex,
-  VStack,
-  useColorModeValue,
-} from "@chakra-ui/react";
+import { Box, Image, Text, VStack, useColorModeValue } from "@chakra-ui/react";
 
+/**
+ * Componente que muestra el encabezado de un restaurante, incluyendo logo, nombre, horario de apertura y ubicación.
+ *
+ * @param {Object} props - Propiedades del componente.
+ * @param {string} props.name - Nombre del restaurante.
+ * @param {string} props.logo - URL del logo del restaurante.
+ * @param {string} props.opening_hour - Horario de apertura.
+ * @param {string} props.location - Dirección del restaurante.
+ * @returns {React.Component} RestaurantHeader.
+ */
 const RestaurantHeader = ({ name, logo, opening_hour, location }) => {
   const bgColor = useColorModeValue("gray.800", "gray.50");
 
@@ -17,23 +20,23 @@ const RestaurantHeader = ({ name, logo, opening_hour, location }) => {
       bgImage="url('https://images.unsplash.com/photo-1481833761820-0509d3217039?q=80&w=2370&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')"
       bgSize="cover"
       bgPosition="center"
-      height={{ base: "300px", md: "400px" }} // Responsive height
+      height={{ base: "300px", md: "400px" }} // Altura responsive
       display="flex"
       alignItems="center"
       justifyContent="center"
       color="white"
     >
       <VStack spacing={4} align="center" textAlign="center">
-        {/* Logo Image */}
+        {/* Imagen del logo */}
         <Image
           borderRadius="full"
-          boxSize={{ base: "100px", md: "150px" }} // Responsive size for image
-          src={logo}
-          alt="logo"
+          boxSize={{ base: "100px", md: "150px" }} // Tamaño responsive de la imagen
+          src={logo || "logo192.png"} // Usar logo predeterminado si no hay logo proporcionado
+          alt="Logo del Restaurante"
           border="4px solid white"
         />
 
-        {/* Restaurant Name and Address */}
+        {/* Nombre y dirección del restaurante */}
         <Box>
           <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold">
             {name}
@@ -41,7 +44,7 @@ const RestaurantHeader = ({ name, logo, opening_hour, location }) => {
           <Text fontSize={{ base: "sm", md: "md" }}>{location}</Text>
         </Box>
 
-        {/* Opening Hours (Styled as Text instead of Button) */}
+        {/* Horarios de apertura */}
         <Box
           bgColor="green.500"
           color="white"

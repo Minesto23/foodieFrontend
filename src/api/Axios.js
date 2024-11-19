@@ -1,23 +1,38 @@
 import axios from "axios";
-// const REACT_APP_BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 
+// Crear una instancia de Axios con configuración base
 const Axios = axios.create({
-  baseURL: "https://detip.pythonanywhere.com/",
-  headers: { "content-type": "application/json" },
+  baseURL: "https://detip.pythonanywhere.com/", // URL base del backend
+  headers: { "Content-Type": "application/json" }, // Tipo de contenido predeterminado
 });
 
+/**
+ * Interceptor de solicitudes para agregar el token de autenticación al encabezado.
+ *
+ * Este interceptor se ejecuta antes de cada solicitud HTTP, añadiendo el token
+ * de acceso almacenado en el localStorage al encabezado `Authorization`.
+ */
 Axios.interceptors.request.use(async (config) => {
-  const token = window.localStorage.getItem("access");
-  const newAcessToken = window.localStorage.getItem("newAcessToken");
+  try {
+    // Obtener tokens almacenados en el localStorage
+    const token = window.localStorage.getItem("access");
+    const newAccessToken = window.localStorage.getItem("newAcessToken");
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  if (newAcessToken) {
-    config.headers.Authorization = `Bearer ${newAcessToken}`;
-  }
+    // Agregar el token al encabezado si está presente
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-  return config;
+    // Reemplazar con el nuevo token si está disponible
+    if (newAccessToken) {
+      config.headers.Authorization = `Bearer ${newAccessToken}`;
+    }
+
+    return config;
+  } catch (error) {
+    console.error("Error en el interceptor de solicitudes:", error);
+    throw error;
+  }
 });
 
 export default Axios;

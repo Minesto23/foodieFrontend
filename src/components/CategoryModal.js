@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Modal,
   ModalOverlay,
@@ -74,14 +74,15 @@ const CategoryModal = ({
     restaurant: selectedRestaurant?.id || null,
   });
 
-  const resetForm = () => {
+  // Memoizamos la función para evitar recrearla en cada renderizado
+  const resetForm = useCallback(() => {
     setCategory({
       name: "",
       description: "",
       icon_name: "",
-      restaurant: selectedRestaurant?.id,
+      restaurant: selectedRestaurant?.id || null,
     });
-  };
+  }, [selectedRestaurant]);
 
   useEffect(() => {
     if (initialData) {
@@ -89,7 +90,7 @@ const CategoryModal = ({
     } else {
       resetForm();
     }
-  }, [initialData, selectedRestaurant]);
+  }, [initialData, selectedRestaurant, resetForm]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -107,7 +108,7 @@ const CategoryModal = ({
   };
 
   const handleSubmit = async () => {
-    toast({ title: "Processing...", status: "info", duration: 1000 });
+    toast({ title: "Procesando...", status: "info", duration: 1000 });
     try {
       const categoryPayload = {
         ...category,
@@ -116,57 +117,41 @@ const CategoryModal = ({
 
       if (initialData) {
         await updateCategory(initialData.id, categoryPayload);
-        toast({ title: "Category updated successfully.", status: "success" });
-        onCategoryCreated();
+        toast({ title: "Categoría actualizada con éxito.", status: "success" });
       } else {
         await createCategory(categoryPayload);
-        toast({ title: "Category created successfully.", status: "success" });
-        if (onCategoryCreated) {
-          onCategoryCreated();
-        }
+        toast({ title: "Categoría creada con éxito.", status: "success" });
       }
 
-      // onSubmit(categoryPayload);
-      onCategoryCreated();
+      if (onCategoryCreated) onCategoryCreated();
       resetForm();
       onClose();
     } catch (error) {
-      console.error("Error submitting category:", error);
+      console.error("Error al enviar la categoría:", error);
       toast({
-        title: "Error submitting category.",
-        description: error.message || "Please try again.",
+        title: "Error al enviar la categoría.",
+        description: error.message || "Por favor, inténtalo de nuevo.",
         status: "error",
       });
     }
   };
 
   const handleDelete = async () => {
-    console.log(initialData);
     if (initialData) {
-      toast({ title: "Deleting...", status: "info", duration: 1000 });
+      toast({ title: "Eliminando...", status: "info", duration: 1000 });
       try {
-        console.log(`Attempting to delete category with ID: ${initialData.id}`);
         await deleteCategory(initialData.id);
-        toast({ title: "Category deleted successfully.", status: "success" });
-        onDelete(initialData.id); // Update parent component
+        toast({ title: "Categoría eliminada con éxito.", status: "success" });
+        onDelete(initialData.id);
         onClose();
       } catch (error) {
-        console.error("Error deleting category:", error);
+        console.error("Error al eliminar la categoría:", error);
         toast({
-          title: "Error deleting category.",
-          description: error.message || "Please try again.",
+          title: "Error al eliminar la categoría.",
+          description: error.message || "Por favor, inténtalo de nuevo.",
           status: "error",
         });
       }
-    } else {
-      console.warn(
-        "Delete operation failed: initialData or onDelete is missing."
-      );
-      toast({
-        title: "No category to delete.",
-        status: "warning",
-        duration: 2000,
-      });
     }
   };
 
@@ -179,49 +164,39 @@ const CategoryModal = ({
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize={{ base: "lg", md: "xl" }}>
-          {initialData ? "Edit Category" : "Add New Category"}
+          {initialData ? "Editar Categoría" : "Nueva Categoría"}
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>
-              Category Name
-            </FormLabel>
+            <FormLabel>Nombre de la Categoría</FormLabel>
             <Input
               name="name"
               value={category.name}
               onChange={handleChange}
-              placeholder="Category Name"
+              placeholder="Nombre de la Categoría"
               maxLength={100}
-              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
-
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>
-              Description
-            </FormLabel>
+            <FormLabel>Descripción</FormLabel>
             <Input
               name="description"
               value={category.description}
               onChange={handleChange}
-              placeholder="Description"
+              placeholder="Descripción"
               maxLength={100}
-              fontSize={{ base: "sm", md: "md" }}
             />
           </FormControl>
-
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>
-              Select Icon
-            </FormLabel>
+            <FormLabel>Selecciona un Ícono</FormLabel>
             <Grid
               templateColumns={{ base: "repeat(3, 1fr)", md: "repeat(5, 1fr)" }}
               gap={4}
             >
-              {iconList.map((icon, index) => (
+              {iconList.map((icon) => (
                 <Box
-                  key={index}
+                  key={icon.name}
                   p={2}
                   border="1px solid"
                   borderColor={
@@ -233,44 +208,24 @@ const CategoryModal = ({
                   display="flex"
                   justifyContent="center"
                   alignItems="center"
-                  h={{ base: 10, md: 12 }}
-                  w={{ base: 10, md: 12 }}
                 >
-                  <Icon
-                    as={icon.component}
-                    w={{ base: 5, md: 6 }}
-                    h={{ base: 5, md: 6 }}
-                  />
+                  <Icon as={icon.component} w={6} h={6} />
                 </Box>
               ))}
             </Grid>
           </FormControl>
         </ModalBody>
-
         <ModalFooter>
           {initialData && (
-            <Button
-              colorScheme="red"
-              mr="auto"
-              onClick={handleDelete}
-              fontSize={{ base: "sm", md: "md" }}
-            >
-              Delete
+            <Button colorScheme="red" mr="auto" onClick={handleDelete}>
+              Eliminar
             </Button>
           )}
-          <Button
-            colorScheme="blue"
-            onClick={handleSubmit}
-            fontSize={{ base: "sm", md: "md" }}
-          >
-            {initialData ? "Update" : "Save"}
+          <Button colorScheme="blue" onClick={handleSubmit}>
+            {initialData ? "Actualizar" : "Guardar"}
           </Button>
-          <Button
-            variant="ghost"
-            onClick={onClose}
-            fontSize={{ base: "sm", md: "md" }}
-          >
-            Cancel
+          <Button variant="ghost" onClick={onClose}>
+            Cancelar
           </Button>
         </ModalFooter>
       </ModalContent>

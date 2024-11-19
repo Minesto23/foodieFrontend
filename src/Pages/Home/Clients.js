@@ -1,58 +1,40 @@
 import React, { useState, useEffect } from "react";
-import {
-  Box,
-  SimpleGrid,
-  Flex,
-  useColorMode,
-  Text,
-  IconButton,
-  useDisclosure,
-} from "@chakra-ui/react";
+import { Box, SimpleGrid, Flex, useColorMode, Text } from "@chakra-ui/react";
 import MenuBar from "../../components/MenuBar";
 import FoodCard from "../../components/FoodCard";
 import EmptyFood from "../../components/EmptyFood";
-import FoodItemModal from "../../components/FoodItemModal";
-import RestaurantModal from "../../components/RestaurantModal";
-import HelpModal from "../../components/HelpModal";
-import { MdEdit } from "react-icons/md";
-import toast from "react-hot-toast";
-import { useParams } from "react-router-dom";
 import RestaurantHeader from "../../components/HeaderClient";
+import { toast } from "react-hot-toast";
+import { useParams } from "react-router-dom";
 
-// Customized hooks
+// Hooks personalizados
 import { UseCategories } from "../../hooks/UseMenuCategories";
 import UseMenuItems from "../../hooks/UseMenuItems";
 
-// Controller
+// Controladores
 import { getRestaurantById } from "../../api/controllers/Restaurants";
 
+/**
+ * Componente principal que gestiona la visualización del restaurante y su menú.
+ *
+ * @returns {JSX.Element} Página principal de visualización del restaurante.
+ */
 const MainPage = () => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
-  const { id } = useParams();
+  const { id } = useParams(); // Obtener el ID del restaurante desde la URL
   const [restaurantDetails, setRestaurantDetails] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const { isOpen: isHelpModalOpen, onClose: onHelpModalClose } =
-    useDisclosure();
-
+  // Hooks para gestionar las categorías y los elementos del menú
   const { menuCategories: categories, fetchAllCategories } =
     UseCategories(restaurantDetails);
-  const {
-    menuItems,
-    fetchAllMenuItems,
-    addMenuItem,
-    modifyMenuItem,
-    removeMenuItem,
-  } = UseMenuItems();
+  const { menuItems, fetchAllMenuItems } = UseMenuItems();
 
-  const [selectedItem, setSelectedItem] = useState(null);
+  // Estados locales
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [isItemModalOpen, setIsItemModalOpen] = useState(false);
-  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState(null);
 
+  // Fetch inicial para obtener los detalles del restaurante
   useEffect(() => {
     const fetchRestaurantDetails = async () => {
       if (id) {
@@ -62,11 +44,12 @@ const MainPage = () => {
           setRestaurantDetails(data);
         } catch (error) {
           console.error("Error fetching restaurant details:", error);
+          toast.error("No se pudieron cargar los detalles del restaurante.");
         } finally {
           setLoading(false);
         }
       } else {
-        setRestaurantDetails({ name: "Select a restaurant" });
+        setRestaurantDetails({ name: "Seleccione un restaurante" });
         setLoading(false);
       }
     };
@@ -74,42 +57,27 @@ const MainPage = () => {
     fetchRestaurantDetails();
   }, [id]);
 
+  // Fetch de categorías y elementos del menú cuando el restaurante cambia
   useEffect(() => {
     if (restaurantDetails) {
       fetchAllCategories();
       fetchAllMenuItems();
     }
-  }, [
-    restaurantDetails,
-    fetchAllCategories,
-    fetchAllMenuItems,
-    isCategoryModalOpen,
-    isItemModalOpen,
-  ]);
+  }, [restaurantDetails, fetchAllCategories, fetchAllMenuItems]);
 
-  const handleDeleteItem = async (id) => {
-    try {
-      await removeMenuItem(id);
-      toast.success("¡Elemento de comida eliminado con éxito!");
-    } catch (error) {
-      console.error("Error al eliminar el elemento de comida:", error);
-      toast.error(
-        "Error al eliminar el elemento de comida. Inténtelo de nuevo."
-      );
-    }
-  };
-
+  /**
+   * Filtra los elementos del menú según la categoría seleccionada.
+   */
   const filteredFoodItems = selectedCategoryId
     ? menuItems.filter((item) => item.category === selectedCategoryId)
     : menuItems;
 
+  /**
+   * Maneja la selección de categorías.
+   * @param {number|null} categoryId - ID de la categoría seleccionada.
+   */
   const handleCategorySelect = (categoryId) => {
     setSelectedCategoryId(categoryId);
-  };
-
-  const handleEditItem = (item) => {
-    setSelectedItem(item);
-    setIsItemModalOpen(true);
   };
 
   if (loading) {
@@ -123,6 +91,7 @@ const MainPage = () => {
       minH="100vh"
       p={6}
     >
+      {/* Encabezado del restaurante */}
       <RestaurantHeader
         name={restaurantDetails?.name || "Nombre no disponible"}
         logo={restaurantDetails?.logo_url || ""}
@@ -132,17 +101,16 @@ const MainPage = () => {
         location={restaurantDetails?.location || "Ubicación no disponible"}
       />
 
-      {/* Menu Bar */}
+      {/* Barra de menú para categorías */}
       <MenuBar
         categories={categories || []}
         selectedCategoryId={selectedCategoryId}
         onCategorySelect={handleCategorySelect}
         selectedRestaurant={restaurantDetails}
-        openCategoryModal={() => setIsCategoryModalOpen(true)}
-        client={true}
+        client={true} // Visualización de cliente, sin opciones de edición
       />
 
-      {/* Conditional rendering of FoodCards or EmptyFood */}
+      {/* Renderizado condicional de los elementos del menú */}
       {filteredFoodItems?.length > 0 ? (
         categories?.map((category) => (
           <Box key={category.id} mt={8}>
@@ -151,14 +119,21 @@ const MainPage = () => {
             ) && (
               <>
                 <Flex justifyContent="center" alignItems="center">
-                  <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" mb={4}>
+                  <Text
+                    fontSize={{ base: "xl", md: "2xl" }}
+                    fontWeight="bold"
+                    mb={4}
+                  >
                     {category.name}
                   </Text>
                 </Flex>
 
-                {/* Responsive Grid of food items */}
+                {/* Grid responsivo de elementos del menú */}
                 <Flex justifyContent="center">
-                  <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }} spacing={4}>
+                  <SimpleGrid
+                    columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+                    spacing={4}
+                  >
                     {filteredFoodItems
                       ?.filter((item) => item.category === category.id)
                       .map((item) => (
@@ -168,7 +143,6 @@ const MainPage = () => {
                           category={item.name}
                           description={item.description}
                           price={item.price}
-                          onClick={() => handleEditItem(item)}
                         />
                       ))}
                   </SimpleGrid>
@@ -178,7 +152,7 @@ const MainPage = () => {
           </Box>
         ))
       ) : (
-        <EmptyFood />
+        <EmptyFood /> // Renderizar componente vacío si no hay elementos
       )}
     </Box>
   );

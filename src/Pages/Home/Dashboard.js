@@ -21,11 +21,15 @@ import { useRestaurantContext } from "../../context/RestaurantContext";
 import { UseCategories } from "../../hooks/UseMenuCategories";
 import UseMenuItems from "../../hooks/UseMenuItems";
 
+/**
+ * Página principal para gestionar restaurantes, categorías y elementos del menú.
+ */
 const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
   const { restaurants } = useRestaurantContext();
 
+  // Estados locales
   const [restaurantDetails, setRestaurantDetails] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -34,26 +38,31 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  const {
-    isOpen: isHelpModalOpen,
-    onClose: onHelpModalClose,
-    onOpen: onHelpModalOpen,
-  } = useDisclosure();
-  const { menuCategories: categories = [], fetchAllCategories } =
+  // Hooks personalizados para manejar categorías y elementos del menú
+  const { menuCategories: categories, fetchAllCategories } =
     UseCategories(restaurantDetails);
   const {
-    menuItems = [],
+    menuItems,
     fetchAllMenuItems,
     addMenuItem,
     modifyMenuItem,
     removeMenuItem,
   } = UseMenuItems();
 
-  // Fetch initial data and manage restaurant details
+  // Control del modal de ayuda
+  const {
+    isOpen: isHelpModalOpen,
+    onClose: onHelpModalClose,
+    onOpen: onHelpModalOpen,
+  } = useDisclosure();
+
+  /**
+   * Fetch inicial para manejar restaurantes y datos relacionados.
+   */
   useEffect(() => {
     if (!restaurants || restaurants.length === 0) {
       onHelpModalOpen();
-      toast("No restaurants found. Please add a restaurant.", {
+      toast("No se encontraron restaurantes. Por favor, añade uno.", {
         status: "info",
       });
     } else {
@@ -63,7 +72,9 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
     if (selectedRestaurant) {
       setRestaurantDetails(selectedRestaurant);
     } else {
-      setRestaurantDetails(restaurants[0] || { name: "Select a restaurant" });
+      setRestaurantDetails(
+        restaurants[0] || { name: "Selecciona un restaurante" }
+      );
     }
 
     fetchAllCategories();
@@ -77,63 +88,83 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
     onHelpModalOpen,
   ]);
 
+  /**
+   * Actualizar elementos del menú después de cerrar el modal de categorías.
+   */
   useEffect(() => {
     if (!isCategoryModalOpen) {
       fetchAllMenuItems();
     }
   }, [isCategoryModalOpen, fetchAllMenuItems]);
 
-  // Add or modify food items
+  /**
+   * Manejar creación o edición de elementos del menú.
+   */
   const handleNewFoodItem = async (newItem) => {
     try {
       if (selectedItem) {
         await modifyMenuItem(selectedItem.id, newItem);
-        toast.success("Food item updated successfully!");
+        toast.success("¡Elemento de comida actualizado con éxito!");
       } else {
         await addMenuItem(newItem);
-        toast.success("Food item added successfully!");
+        toast.success("¡Elemento de comida añadido con éxito!");
       }
       fetchAllMenuItems();
     } catch (error) {
-      toast.error("Error saving food item. Please try again.");
+      toast.error("Error al guardar el elemento. Inténtelo de nuevo.");
     }
   };
 
-  // Delete food items
+  /**
+   * Eliminar un elemento del menú.
+   */
   const handleDeleteItem = async (id) => {
     try {
       await removeMenuItem(id);
-      toast.success("Food item deleted successfully!");
+      toast.success("¡Elemento de comida eliminado con éxito!");
       fetchAllMenuItems();
     } catch (error) {
-      toast.error("Error deleting food item. Please try again.");
+      toast.error("Error al eliminar el elemento. Inténtelo de nuevo.");
     }
   };
 
-  // Filter items based on selected category
+  /**
+   * Filtrar elementos del menú por categoría seleccionada.
+   */
   const filteredFoodItems = selectedCategoryId
     ? menuItems.filter((item) => item.category === selectedCategoryId)
     : menuItems;
 
-  // Category selection handler
+  /**
+   * Manejar selección de categorías.
+   */
   const handleCategorySelect = (categoryId) =>
     setSelectedCategoryId(categoryId);
 
+  /**
+   * Manejar edición de categorías.
+   */
   const handleEditCategory = (category) => {
     setSelectedCategory(category);
     setIsCategoryModalOpen(true);
   };
 
+  /**
+   * Manejar edición de elementos del menú.
+   */
   const handleEditItem = (item) => {
     setSelectedItem(item);
     setIsItemModalOpen(true);
   };
 
+  /**
+   * Manejar actualización de datos del restaurante.
+   */
   const handleUpdateRestaurant = (updatedRestaurant) => {
     setSelectedRestaurant(updatedRestaurant);
     setRestaurantDetails(updatedRestaurant);
     setRestaurantModalOpen(false);
-    toast.success("Restaurant updated successfully!");
+    toast.success("¡Restaurante actualizado con éxito!");
   };
 
   return (
@@ -143,11 +174,13 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
       minH="100vh"
       p={6}
     >
+      {/* Encabezado del restaurante */}
       <RestaurantName
-        name={restaurantDetails?.name || "Select a restaurant"}
+        name={restaurantDetails?.name || "Selecciona un restaurante"}
         onEdit={() => setRestaurantModalOpen(true)}
       />
 
+      {/* Barra de menú para categorías */}
       <MenuBar
         categories={categories}
         selectedCategoryId={selectedCategoryId}
@@ -158,59 +191,46 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         fetchAllCategories={fetchAllCategories}
       />
 
-      {/* Categories and Food Items */}
-      {categories
-        .filter(
-          (category) =>
-            !selectedCategoryId || category.id === selectedCategoryId
-        )
-        .map((category) => (
-          <Box key={category.id} mt={8}>
-            <Flex justifyContent="center" alignItems="center">
-              <Text
-                fontSize={{ base: "xl", md: "2xl" }}
-                fontWeight="bold"
-                mb={4}
-              >
-                {category.name}
-              </Text>
-              <IconButton
-                aria-label="Edit Category"
-                icon={<MdEdit />}
-                size={{ base: "md", md: "lg" }}
-                variant="ghost"
-                pb={4}
-                onClick={() => handleEditCategory(category)}
-              />
-            </Flex>
+      {/* Mostrar categorías y elementos del menú */}
+      {categories.map((category) => (
+        <Box key={category.id} mt={8}>
+          <Flex justifyContent="center" alignItems="center">
+            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" mb={4}>
+              {category.name}
+            </Text>
+            <IconButton
+              aria-label="Editar categoría"
+              icon={<MdEdit />}
+              size="lg"
+              variant="ghost"
+              onClick={() => handleEditCategory(category)}
+            />
+          </Flex>
 
-            {filteredFoodItems.some((item) => item.category === category.id) ? (
-              <SimpleGrid
-                columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
-                spacing={4}
-              >
-                {filteredFoodItems
-                  .filter((item) => item.category === category.id)
-                  .map((item) => (
-                    <FoodCard
-                      key={item.id}
-                      imageUrl={item.image_url}
-                      category={item.name}
-                      description={item.description}
-                      price={item.price}
-                      onClick={() => handleEditItem(item)}
-                    />
-                  ))}
-              </SimpleGrid>
-            ) : (
-              <Text textAlign="center" fontSize="md" color="gray.500">
-                No items in this category.
-              </Text>
-            )}
-          </Box>
-        ))}
+          {filteredFoodItems.some((item) => item.category === category.id) ? (
+            <SimpleGrid columns={{ base: 1, md: 3, lg: 4 }} spacing={4}>
+              {filteredFoodItems
+                .filter((item) => item.category === category.id)
+                .map((item) => (
+                  <FoodCard
+                    key={item.id}
+                    imageUrl={item.image_url}
+                    category={item.name}
+                    description={item.description}
+                    price={item.price}
+                    onClick={() => handleEditItem(item)}
+                  />
+                ))}
+            </SimpleGrid>
+          ) : (
+            <Text textAlign="center" color="gray.500">
+              No hay elementos en esta categoría.
+            </Text>
+          )}
+        </Box>
+      ))}
 
-      {/* Add New Item Button */}
+      {/* Botón para añadir un nuevo elemento */}
       <Box
         bg="white"
         boxShadow="md"
@@ -218,37 +238,17 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         p={4}
         textAlign="center"
         maxW="200px"
-        _hover={{
-          boxShadow: "lg",
-          transform: "scale(1.05)",
-          transition: "0.3s",
-        }}
+        mx="auto"
         cursor="pointer"
         onClick={() => setIsItemModalOpen(true)}
+        _hover={{ transform: "scale(1.05)" }}
         mt={8}
-        mx="auto"
       >
-        <Box
-          bg="gray.200"
-          borderRadius="full"
-          width="80px"
-          height="80px"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-          mx="auto"
-          mb={4}
-        >
-          <Text fontSize="4xl" color="gray.600">
-            +
-          </Text>
-        </Box>
-        <Text fontSize="lg" fontWeight="bold" color="gray.700">
-          Add Item
-        </Text>
+        <Text fontSize="2xl">+</Text>
+        <Text fontSize="lg">Añadir Elemento</Text>
       </Box>
 
-      {/* Modals */}
+      {/* Modales */}
       <CategoryModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
@@ -256,26 +256,20 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         selectedRestaurant={restaurantDetails}
         onCategoryCreated={fetchAllCategories}
       />
-
       <FoodItemModal
         isOpen={isItemModalOpen}
-        onClose={() => {
-          setIsItemModalOpen(false);
-          fetchAllMenuItems();
-        }}
+        onClose={() => setIsItemModalOpen(false)}
         onSubmit={handleNewFoodItem}
         onDelete={handleDeleteItem}
         initialData={selectedItem}
         categories={categories}
       />
-
       <RestaurantModal
         isOpen={isRestaurantModalOpen}
         onClose={() => setRestaurantModalOpen(false)}
         onSubmit={handleUpdateRestaurant}
         initialData={restaurantDetails}
       />
-
       <HelpModal isOpen={isHelpModalOpen} onClose={onHelpModalClose} />
     </Box>
   );

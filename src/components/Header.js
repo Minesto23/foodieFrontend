@@ -30,6 +30,14 @@ import HelpModal from "./HelpModal";
 import ExportModal from "./ExportModal";
 import { useRestaurantContext } from "../context/RestaurantContext";
 
+/**
+ * Componente Header que contiene la navegación principal, opciones de usuario
+ * y modales para funcionalidades adicionales.
+ *
+ * @param {Object} props - Propiedades del componente.
+ * @param {function} props.onSelectRestaurant - Función para manejar la selección de un restaurante.
+ * @returns {React.Component} Header.
+ */
 const Header = ({ onSelectRestaurant }) => {
   const { restaurants, fetchAllRestaurants } = useRestaurantContext();
   const { colorMode, toggleColorMode } = useColorMode();
@@ -37,49 +45,57 @@ const Header = ({ onSelectRestaurant }) => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Estado para controlar el menú móvil
   const [isOpen, setIsOpen] = useState(false);
   const onToggle = () => setIsOpen((prevState) => !prevState);
 
+  // Estado para los modales
   const [isRestaurantModalOpen, setIsRestaurantModalOpen] = useState(false);
-  const openRestaurantModal = () => setIsRestaurantModalOpen(true);
-  const closeRestaurantModal = () => setIsRestaurantModalOpen(false);
-
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
-  const openHelpModal = () => setIsHelpModalOpen(true);
-  const closeHelpModal = () => setIsHelpModalOpen(false);
-
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-  const openExportModal = () => setIsExportModalOpen(true);
-  const closeExportModal = () => setIsExportModalOpen(false);
-
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
 
+  // Efecto para cargar restaurantes al montar el componente
   useEffect(() => {
     fetchAllRestaurants();
-    if (selectedRestaurant == null) {
+    if (!selectedRestaurant && restaurants.length > 0) {
       setSelectedRestaurant(restaurants[0]);
     }
-  }, [isRestaurantModalOpen, isHelpModalOpen, isExportModalOpen, fetchAllRestaurants]);
+  }, [
+    isRestaurantModalOpen,
+    isHelpModalOpen,
+    isExportModalOpen,
+    fetchAllRestaurants,
+  ]);
 
+  /**
+   * Maneja la selección de un restaurante.
+   *
+   * @param {Object} restaurant - Restaurante seleccionado.
+   */
   const handleSelectRestaurant = (restaurant) => {
     setSelectedRestaurant(restaurant);
     onSelectRestaurant(restaurant);
   };
 
+  /**
+   * Maneja el cierre de sesión.
+   */
   const handleLogout = () => {
-    // console.log("Logging out...");
     navigate("/login");
   };
 
-  const handleAddRestaurant = (restaurantDetails) => {
-    console.log("New Restaurant Details:", restaurantDetails);
-  };
-
+  /**
+   * Verifica si el usuario está en una página específica de restaurante.
+   *
+   * @returns {boolean} Verdadero si el usuario está en una página de restaurante.
+   */
   const isRestaurantPage = /^\/restaurant\/\d+/.test(location.pathname);
 
   return (
     <Box bg={colorMode === "light" ? "gray.100" : "gray.900"} px={6}>
       <Flex h={16} alignItems="center" justifyContent="space-between">
+        {/* Logo y título */}
         <Flex alignItems="center" pl={{ base: 2, md: 10 }}>
           <Image
             src="/logo192.png"
@@ -93,27 +109,34 @@ const Header = ({ onSelectRestaurant }) => {
           </Text>
         </Flex>
 
-        {/* Mobile Menu Toggle */}
+        {/* Botón para menú móvil */}
         <IconButton
           size="md"
           icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
-          aria-label="Open Menu"
+          aria-label="Abrir Menú"
           display={{ md: "none" }}
           onClick={onToggle}
         />
 
-        {/* Desktop Navigation Menu */}
+        {/* Menú de navegación (versión escritorio) */}
         {!isRestaurantPage && (
           <Flex display={{ base: "none", md: "flex" }} alignItems="center">
             <Stack direction="row" spacing={4}>
               {location.pathname === "/home" ? (
                 <>
-                  <Button onClick={openExportModal} colorScheme="red">
-                    Export
+                  <Button
+                    onClick={() => setIsExportModalOpen(true)}
+                    colorScheme="red"
+                  >
+                    Exportar
                   </Button>
                   <Menu>
-                    <MenuButton as={Button} rightIcon={<ChevronDownIcon />} colorScheme="red">
-                      Restaurants
+                    <MenuButton
+                      as={Button}
+                      rightIcon={<ChevronDownIcon />}
+                      colorScheme="red"
+                    >
+                      Restaurantes
                     </MenuButton>
                     <MenuList>
                       {restaurants.length > 0 ? (
@@ -126,31 +149,46 @@ const Header = ({ onSelectRestaurant }) => {
                           </MenuItem>
                         ))
                       ) : (
-                        <MenuItem>No restaurants available</MenuItem>
+                        <MenuItem>No hay restaurantes disponibles</MenuItem>
                       )}
-                      <MenuItem icon={<AddIcon />} onClick={openRestaurantModal} color="green.500">
-                        Add Restaurant
+                      <MenuItem
+                        icon={<AddIcon />}
+                        onClick={() => setIsRestaurantModalOpen(true)}
+                      >
+                        Agregar Restaurante
                       </MenuItem>
                     </MenuList>
                   </Menu>
                   <Button onClick={handleLogout} colorScheme="red">
-                    Logout
+                    Cerrar Sesión
                   </Button>
                 </>
               ) : (
                 <>
-                  <Link href="/register" px={2} py={1} rounded="md" _hover={{ bg: "gray.200" }}>
-                    Register
+                  <Link
+                    href="/register"
+                    px={2}
+                    py={1}
+                    rounded="md"
+                    _hover={{ bg: "gray.200" }}
+                  >
+                    Registrarse
                   </Link>
-                  <Link href="/login" px={2} py={1} rounded="md" _hover={{ bg: "gray.200" }}>
-                    Login
+                  <Link
+                    href="/login"
+                    px={2}
+                    py={1}
+                    rounded="md"
+                    _hover={{ bg: "gray.200" }}
+                  >
+                    Iniciar Sesión
                   </Link>
                 </>
               )}
               <Button onClick={toggleColorMode}>
                 {colorMode === "light" ? <MoonIcon /> : <SunIcon />}
               </Button>
-              <Button onClick={openHelpModal} variant="ghost">
+              <Button onClick={() => setIsHelpModalOpen(true)} variant="ghost">
                 <QuestionIcon />
               </Button>
             </Stack>
@@ -158,18 +196,27 @@ const Header = ({ onSelectRestaurant }) => {
         )}
       </Flex>
 
-      {/* Mobile Menu Links */}
+      {/* Menú móvil */}
       <Collapse in={isOpen} animateOpacity>
         <Box pb={4} display={{ md: "none" }}>
           <Stack as="nav" spacing={4}>
             {location.pathname === "/home" ? (
               <>
-                <Button onClick={openExportModal} colorScheme="red" width="full">
-                  Export
+                <Button
+                  onClick={() => setIsExportModalOpen(true)}
+                  colorScheme="red"
+                  width="full"
+                >
+                  Exportar
                 </Button>
                 <Menu>
-                  <MenuButton as={Button} rightIcon={<ChevronDownIcon />} colorScheme="red" width="full">
-                    Restaurants
+                  <MenuButton
+                    as={Button}
+                    rightIcon={<ChevronDownIcon />}
+                    colorScheme="red"
+                    width="full"
+                  >
+                    Restaurantes
                   </MenuButton>
                   <MenuList>
                     {restaurants.length > 0 ? (
@@ -182,47 +229,52 @@ const Header = ({ onSelectRestaurant }) => {
                         </MenuItem>
                       ))
                     ) : (
-                      <MenuItem>No restaurants available</MenuItem>
+                      <MenuItem>No hay restaurantes disponibles</MenuItem>
                     )}
-                    <MenuItem icon={<AddIcon />} onClick={openRestaurantModal} color="green.500">
-                      Add Restaurant
+                    <MenuItem
+                      icon={<AddIcon />}
+                      onClick={() => setIsRestaurantModalOpen(true)}
+                    >
+                      Agregar Restaurante
                     </MenuItem>
                   </MenuList>
                 </Menu>
                 <Button onClick={handleLogout} colorScheme="red" width="full">
-                  Logout
+                  Cerrar Sesión
                 </Button>
               </>
             ) : (
               <>
-                <Link href="/register" onClick={onToggle}>
-                  Register
-                </Link>
-                <Link href="/login" onClick={onToggle}>
-                  Login
-                </Link>
+                <Link href="/register">Registrarse</Link>
+                <Link href="/login">Iniciar Sesión</Link>
               </>
             )}
             <Button onClick={toggleColorMode} width="full">
-              {colorMode === "light" ? "Dark Mode" : "Light Mode"}
+              {colorMode === "light" ? "Modo Oscuro" : "Modo Claro"}
             </Button>
-            <Button onClick={openHelpModal} width="full" variant="ghost">
-              Help
+            <Button
+              onClick={() => setIsHelpModalOpen(true)}
+              width="full"
+              variant="ghost"
+            >
+              Ayuda
             </Button>
           </Stack>
         </Box>
       </Collapse>
 
-      {/* Modals */}
+      {/* Modales */}
       <CreateRestaurantModal
         isOpen={isRestaurantModalOpen}
-        onClose={closeRestaurantModal}
-        onCreateSuccess={handleAddRestaurant}
+        onClose={() => setIsRestaurantModalOpen(false)}
       />
-      <HelpModal isOpen={isHelpModalOpen} onClose={closeHelpModal} />
+      <HelpModal
+        isOpen={isHelpModalOpen}
+        onClose={() => setIsHelpModalOpen(false)}
+      />
       <ExportModal
         isOpen={isExportModalOpen}
-        onClose={closeExportModal}
+        onClose={() => setIsExportModalOpen(false)}
         restaurantId={selectedRestaurant?.id}
       />
     </Box>
