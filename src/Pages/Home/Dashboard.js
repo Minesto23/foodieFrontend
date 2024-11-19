@@ -11,7 +11,6 @@ import {
 import MenuBar from "../../components/MenuBar";
 import RestaurantName from "../../components/RestaurantName";
 import FoodCard from "../../components/FoodCard";
-import EmptyFood from "../../components/EmptyFood";
 import FoodItemModal from "../../components/FoodItemModal";
 import RestaurantModal from "../../components/RestaurantModal";
 import HelpModal from "../../components/HelpModal";
@@ -19,8 +18,6 @@ import CategoryModal from "../../components/CategoryModal";
 import { MdEdit } from "react-icons/md";
 import toast from "react-hot-toast";
 import { useRestaurantContext } from "../../context/RestaurantContext";
-
-// Customized hooks
 import { UseCategories } from "../../hooks/UseMenuCategories";
 import UseMenuItems from "../../hooks/UseMenuItems";
 
@@ -28,24 +25,8 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
   const { restaurants } = useRestaurantContext();
+
   const [restaurantDetails, setRestaurantDetails] = useState({});
-
-  const {
-    isOpen: isHelpModalOpen,
-    onClose: onHelpModalClose,
-    onOpen: onHelpModalOpen,
-  } = useDisclosure();
-
-  const { menuCategories: categories, fetchAllCategories } =
-    UseCategories(restaurantDetails);
-  const {
-    menuItems,
-    fetchAllMenuItems,
-    addMenuItem,
-    modifyMenuItem,
-    removeMenuItem,
-  } = UseMenuItems();
-
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -53,8 +34,24 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
+  const {
+    isOpen: isHelpModalOpen,
+    onClose: onHelpModalClose,
+    onOpen: onHelpModalOpen,
+  } = useDisclosure();
+  const { menuCategories: categories = [], fetchAllCategories } =
+    UseCategories(restaurantDetails);
+  const {
+    menuItems = [],
+    fetchAllMenuItems,
+    addMenuItem,
+    modifyMenuItem,
+    removeMenuItem,
+  } = UseMenuItems();
+
+  // Fetch initial data and manage restaurant details
   useEffect(() => {
-    if (restaurants.length === 0) {
+    if (!restaurants || restaurants.length === 0) {
       onHelpModalOpen();
       toast("No restaurants found. Please add a restaurant.", {
         status: "info",
@@ -81,15 +78,12 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   ]);
 
   useEffect(() => {
-    fetchAllMenuItems();
-  }, [fetchAllCategories]);
-
-  useEffect(() => {
     if (!isCategoryModalOpen) {
       fetchAllMenuItems();
     }
-  }, [isCategoryModalOpen]);
+  }, [isCategoryModalOpen, fetchAllMenuItems]);
 
+  // Add or modify food items
   const handleNewFoodItem = async (newItem) => {
     try {
       if (selectedItem) {
@@ -105,6 +99,7 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
     }
   };
 
+  // Delete food items
   const handleDeleteItem = async (id) => {
     try {
       await removeMenuItem(id);
@@ -115,13 +110,14 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
     }
   };
 
+  // Filter items based on selected category
   const filteredFoodItems = selectedCategoryId
     ? menuItems.filter((item) => item.category === selectedCategoryId)
     : menuItems;
 
-  const handleCategorySelect = (categoryId) => {
+  // Category selection handler
+  const handleCategorySelect = (categoryId) =>
     setSelectedCategoryId(categoryId);
-  };
 
   const handleEditCategory = (category) => {
     setSelectedCategory(category);
@@ -153,7 +149,7 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
       />
 
       <MenuBar
-        categories={categories || []}
+        categories={categories}
         selectedCategoryId={selectedCategoryId}
         onCategorySelect={handleCategorySelect}
         selectedRestaurant={restaurantDetails}
@@ -162,9 +158,11 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         fetchAllCategories={fetchAllCategories}
       />
 
+      {/* Categories and Food Items */}
       {categories
-        ?.filter((category) =>
-          selectedCategoryId ? category.id === selectedCategoryId : true
+        .filter(
+          (category) =>
+            !selectedCategoryId || category.id === selectedCategoryId
         )
         .map((category) => (
           <Box key={category.id} mt={8}>
@@ -187,27 +185,23 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
             </Flex>
 
             {filteredFoodItems.some((item) => item.category === category.id) ? (
-              <Flex justifyContent="center" alignItems="center">
-                <SimpleGrid
-                  columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
-                  spacing={4}
-                  maxW="100%"
-                  mx="auto"
-                >
-                  {filteredFoodItems
-                    ?.filter((item) => item.category === category.id)
-                    .map((item) => (
-                      <FoodCard
-                        key={item.id}
-                        imageUrl={item.image_url}
-                        category={item.name}
-                        description={item.description}
-                        price={item.price}
-                        onClick={() => handleEditItem(item)}
-                      />
-                    ))}
-                </SimpleGrid>
-              </Flex>
+              <SimpleGrid
+                columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+                spacing={4}
+              >
+                {filteredFoodItems
+                  .filter((item) => item.category === category.id)
+                  .map((item) => (
+                    <FoodCard
+                      key={item.id}
+                      imageUrl={item.image_url}
+                      category={item.name}
+                      description={item.description}
+                      price={item.price}
+                      onClick={() => handleEditItem(item)}
+                    />
+                  ))}
+              </SimpleGrid>
             ) : (
               <Text textAlign="center" fontSize="md" color="gray.500">
                 No items in this category.
@@ -216,52 +210,51 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
           </Box>
         ))}
 
-      {restaurantDetails && (
+      {/* Add New Item Button */}
+      <Box
+        bg="white"
+        boxShadow="md"
+        borderRadius="lg"
+        p={4}
+        textAlign="center"
+        maxW="200px"
+        _hover={{
+          boxShadow: "lg",
+          transform: "scale(1.05)",
+          transition: "0.3s",
+        }}
+        cursor="pointer"
+        onClick={() => setIsItemModalOpen(true)}
+        mt={8}
+        mx="auto"
+      >
         <Box
-          bg="white"
-          boxShadow="md"
-          borderRadius="lg"
-          p={4}
-          textAlign="center"
-          maxW="200px"
-          _hover={{
-            boxShadow: "lg",
-            transform: "scale(1.05)",
-            transition: "0.3s",
-          }}
-          cursor="pointer"
-          onClick={() => setIsItemModalOpen(true)}
-          mt={8}
+          bg="gray.200"
+          borderRadius="full"
+          width="80px"
+          height="80px"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
           mx="auto"
+          mb={4}
         >
-          <Box
-            bg="gray.200"
-            borderRadius="full"
-            width="80px"
-            height="80px"
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            mx="auto"
-            mb={4}
-          >
-            <Text fontSize="4xl" color="gray.600">
-              +
-            </Text>
-          </Box>
-          <Text fontSize="lg" fontWeight="bold" color="gray.700">
-            Add Item
+          <Text fontSize="4xl" color="gray.600">
+            +
           </Text>
         </Box>
-      )}
+        <Text fontSize="lg" fontWeight="bold" color="gray.700">
+          Add Item
+        </Text>
+      </Box>
 
+      {/* Modals */}
       <CategoryModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
         initialData={selectedCategory}
         selectedRestaurant={restaurantDetails}
         onCategoryCreated={fetchAllCategories}
-        onDelete={fetchAllCategories}
       />
 
       <FoodItemModal

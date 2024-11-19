@@ -24,8 +24,13 @@ const App = () => {
             <Route path="/register" element={<RegisterPage />} />
             <Route
               path="/home"
-              element={<Dashboard selectedRestaurant={selectedRestaurant} setSelectedRestaurant={setSelectedRestaurant} />}
-              />
+              element={
+                <Dashboard
+                  selectedRestaurant={selectedRestaurant}
+                  setSelectedRestaurant={setSelectedRestaurant}
+                />
+              }
+            />
             <Route path="/" element={<LoginPage />} />{" "}
             {/* Default route to Login */}
             {/* Route for Clients with restaurant ID */}
