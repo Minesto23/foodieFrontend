@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, Flex } from "@chakra-ui/react";
 import CategoryButton from "./CategoryButton";
 import { FaUtensils, FaPlus } from "react-icons/fa";
@@ -20,7 +20,7 @@ import {
   FaWineBottle,
   FaBeer,
 } from "react-icons/fa";
-import { UseCategories } from "../hooks/UseMenuCategories";
+import { useCategoryContext } from "../context/CategoryContext";
 
 /**
  * Componente MenuBar
@@ -40,8 +40,16 @@ const MenuBar = ({
   selectedRestaurant,
   client,
 }) => {
-  // Estado para controlar la apertura del modal de categorías
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+
+  const {
+    categories,
+    fetchCategories,
+    addCategory,
+    editCategory,
+    removeCategory,
+  } = useCategoryContext();
 
   /**
    * Mapeo de iconos según el nombre.
@@ -64,20 +72,38 @@ const MenuBar = ({
     FaBeer: FaBeer,
   };
 
-  const { menuCategories: categories, fetchAllCategories } =
-    UseCategories(selectedRestaurant);
-
-  // Actualiza las categorías al montar o cambiar el estado del modal
+  // Carga inicial de categorías
   useEffect(() => {
-    fetchAllCategories();
-  }, [fetchAllCategories, isCategoryModalOpen]);
+    if (selectedRestaurant?.id) {
+      fetchCategories(selectedRestaurant.id);
+    }
+  }, [fetchCategories, selectedRestaurant]);
 
   /**
-   * Maneja el evento de envío en el modal de categorías.
+   * Manejar cierre del modal de categorías.
    */
-  const handleCategorySubmit = () => {
-    fetchAllCategories(); // Refresca las categorías
-    setIsCategoryModalOpen(false); // Cierra el modal
+  const handleModalClose = () => {
+    setIsCategoryModalOpen(false);
+    setEditingCategory(null);
+  };
+
+  /**
+   * Manejar el envío de categorías (nuevo o edición).
+   */
+  const handleCategorySubmit = async (category) => {
+    if (editingCategory) {
+      await editCategory(editingCategory.id, category);
+    } else {
+      await addCategory(category);
+    }
+    handleModalClose();
+  };
+
+  /**
+   * Manejar eliminación de una categoría.
+   */
+  const handleCategoryDelete = async (categoryId) => {
+    await removeCategory(categoryId);
   };
 
   /**
@@ -111,13 +137,18 @@ const MenuBar = ({
         />
 
         {/* Botones dinámicos de categorías */}
-        {categories.map((category, index) => (
+        {categories.map((category) => (
           <CategoryButton
-            key={index}
+            key={category.id}
             icon={iconMapping[category.icon_name]}
             label={category.name}
             onClick={() => onCategorySelect(category.id)}
             isActive={selectedCategoryId === category.id}
+            onEdit={() => {
+              setEditingCategory(category);
+              setIsCategoryModalOpen(true);
+            }}
+            onDelete={() => handleCategoryDelete(category.id)}
           />
         ))}
 
@@ -128,11 +159,11 @@ const MenuBar = ({
       {/* Modal para agregar/editar categorías */}
       <CategoryModal
         isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
-        onSubmit={handleCategorySubmit}
+        onClose={handleModalClose}
         selectedRestaurant={selectedRestaurant}
-        onDelete={fetchAllCategories}
-        onCategoryCreated={fetchAllCategories}
+        initialData={editingCategory}
+        onSubmit={handleCategorySubmit}
+        onDelete={handleCategoryDelete}
       />
     </Box>
   );

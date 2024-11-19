@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   SimpleGrid,
@@ -13,23 +13,26 @@ import RestaurantName from "../../components/RestaurantName";
 import FoodCard from "../../components/FoodCard";
 import FoodItemModal from "../../components/FoodItemModal";
 import RestaurantModal from "../../components/RestaurantModal";
-import HelpModal from "../../components/HelpModal";
 import CategoryModal from "../../components/CategoryModal";
+import HelpModal from "../../components/HelpModal";
 import { MdEdit } from "react-icons/md";
 import toast from "react-hot-toast";
 import { useRestaurantContext } from "../../context/RestaurantContext";
-import { UseCategories } from "../../hooks/UseMenuCategories";
+import { useCategoryContext } from "../../context/CategoryContext";
 import UseMenuItems from "../../hooks/UseMenuItems";
 
-/**
- * Página principal para gestionar restaurantes, categorías y elementos del menú.
- */
 const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
   const { restaurants } = useRestaurantContext();
+  const {
+    categories,
+    fetchCategories,
+    addCategory,
+    updateCategory,
+    removeCategory,
+  } = useCategoryContext();
 
-  // Estados locales
   const [restaurantDetails, setRestaurantDetails] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
@@ -38,9 +41,6 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
-  // Hooks personalizados para manejar categorías y elementos del menú
-  const { menuCategories: categories, fetchAllCategories } =
-    UseCategories(restaurantDetails);
   const {
     menuItems,
     fetchAllMenuItems,
@@ -49,7 +49,6 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
     removeMenuItem,
   } = UseMenuItems();
 
-  // Control del modal de ayuda
   const {
     isOpen: isHelpModalOpen,
     onClose: onHelpModalClose,
@@ -77,25 +76,16 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
       );
     }
 
-    fetchAllCategories();
+    fetchCategories(selectedRestaurant?.id);
     fetchAllMenuItems();
   }, [
     selectedRestaurant,
-    fetchAllCategories,
+    fetchCategories,
     fetchAllMenuItems,
     restaurants,
     onHelpModalClose,
     onHelpModalOpen,
   ]);
-
-  /**
-   * Actualizar elementos del menú después de cerrar el modal de categorías.
-   */
-  useEffect(() => {
-    if (!isCategoryModalOpen) {
-      fetchAllMenuItems();
-    }
-  }, [isCategoryModalOpen, fetchAllMenuItems]);
 
   /**
    * Manejar creación o edición de elementos del menú.
@@ -182,13 +172,10 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
 
       {/* Barra de menú para categorías */}
       <MenuBar
-        categories={categories}
         selectedCategoryId={selectedCategoryId}
         onCategorySelect={handleCategorySelect}
         selectedRestaurant={restaurantDetails}
-        openCategoryModal={() => setIsCategoryModalOpen(true)}
         client={false}
-        fetchAllCategories={fetchAllCategories}
       />
 
       {/* Mostrar categorías y elementos del menú */}
@@ -254,7 +241,8 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         onClose={() => setIsCategoryModalOpen(false)}
         initialData={selectedCategory}
         selectedRestaurant={restaurantDetails}
-        onCategoryCreated={fetchAllCategories}
+        onSubmit={selectedCategory ? updateCategory : addCategory}
+        onDelete={removeCategory}
       />
       <FoodItemModal
         isOpen={isItemModalOpen}
