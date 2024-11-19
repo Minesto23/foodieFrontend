@@ -20,8 +20,20 @@ const CategoryButton = ({ icon, label, isActive, onClick }) => {
       height={{ base: "80px", md: "100px", lg: "120px" }} // Alto ajustable según tamaño de pantalla
       onClick={onClick}
     >
-      <Icon as={icon} w={{ base: 6, md: 8, lg: 10 }} h={{ base: 6, md: 8, lg: 10 }} /> {/* Tamaño del icono responsive */}
-      <Text mt={2} fontSize={{ base: "xs", md: "sm", lg: "md" }}>
+      <Icon
+        as={icon}
+        w={{ base: 6, md: 8, lg: 10 }}
+        h={{ base: 6, md: 8, lg: 10 }}
+      />{" "}
+      {/* Tamaño del icono responsive */}
+      <Text
+        mt={2}
+        fontSize={{ base: "xs", md: "sm", lg: "md" }}
+        whiteSpace="nowrap" // Evita que el texto se envuelva
+        overflow="hidden" // Oculta el texto desbordante
+        textOverflow="ellipsis" // Añade "..." al texto que no cabe
+        maxWidth="100%" // Asegura que el texto se mantenga dentro del contenedor
+      >
         {label}
       </Text>
     </Box>

@@ -60,7 +60,7 @@ const LoginForm = ({ onLoginSuccess }) => {
 
   return (
     <Box
-      width={{ base: "90%", sm: "80%", md: "60%", lg: "40%" }} // Responsive width for form container
+      width={{ base: "100%", sm: "80%", md: "60%", lg: "40%" }} // Responsive width for form container
       bg={isDark ? "gray.700" : "gray.50"}
       p={{ base: 6, md: 8 }} // Responsive padding
       borderRadius="lg"

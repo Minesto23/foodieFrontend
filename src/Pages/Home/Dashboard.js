@@ -27,11 +27,17 @@ import UseMenuItems from "../../hooks/UseMenuItems";
 const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
-  const { restaurants, fetchAllRestaurants } = useRestaurantContext();
+  const { restaurants } = useRestaurantContext();
+  const [restaurantDetails, setRestaurantDetails] = useState({});
 
-  const { isOpen: isHelpModalOpen, onClose: onHelpModalClose, onOpen: onHelpModalOpen } = useDisclosure();
+  const {
+    isOpen: isHelpModalOpen,
+    onClose: onHelpModalClose,
+    onOpen: onHelpModalOpen,
+  } = useDisclosure();
 
-  const { menuCategories: categories, fetchAllCategories } = UseCategories(selectedRestaurant);
+  const { menuCategories: categories, fetchAllCategories } =
+    UseCategories(restaurantDetails);
   const {
     menuItems,
     fetchAllMenuItems,
@@ -40,7 +46,6 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
     removeMenuItem,
   } = UseMenuItems();
 
-  const [restaurantDetails, setRestaurantDetails] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
@@ -49,62 +54,64 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   useEffect(() => {
-    // Verifica si no hay restaurantes y muestra el modal de ayuda si es necesario.
     if (restaurants.length === 0) {
       onHelpModalOpen();
+      toast("No restaurants found. Please add a restaurant.", {
+        status: "info",
+      });
     } else {
       onHelpModalClose();
     }
-  
-    // Si `selectedRestaurant` está definido, actualiza `restaurantDetails` solo si es necesario.
+
     if (selectedRestaurant) {
-      if (restaurantDetails !== selectedRestaurant) {
-        setRestaurantDetails(selectedRestaurant);
-      }
+      setRestaurantDetails(selectedRestaurant);
     } else {
-      // Si no hay `selectedRestaurant`, inicializa `restaurantDetails` o muestra un valor predeterminado.
       setRestaurantDetails(restaurants[0] || { name: "Select a restaurant" });
     }
-  
-    // Llama a las funciones de carga de datos solo cuando cambia `selectedRestaurant`.
+
     fetchAllCategories();
     fetchAllMenuItems();
   }, [
-    selectedRestaurant, 
-    fetchAllCategories, 
-    fetchAllMenuItems, 
-    restaurants, // Añadido para que reevalúe al cargar restaurantes.
+    selectedRestaurant,
+    fetchAllCategories,
+    fetchAllMenuItems,
+    restaurants,
     onHelpModalClose,
-    onHelpModalOpen
+    onHelpModalOpen,
   ]);
-  
-  // useEffect(() => {
-  //   fetchAllCategories();
-  //   fetchAllMenuItems();
-  // }, [isCategoryModalOpen, isItemModalOpen, fetchAllCategories, fetchAllMenuItems]);
+
+  useEffect(() => {
+    fetchAllMenuItems();
+  }, [fetchAllCategories]);
+
+  useEffect(() => {
+    if (!isCategoryModalOpen) {
+      fetchAllMenuItems();
+    }
+  }, [isCategoryModalOpen]);
 
   const handleNewFoodItem = async (newItem) => {
     try {
       if (selectedItem) {
         await modifyMenuItem(selectedItem.id, newItem);
-        toast.success("¡Elemento de comida actualizado con éxito!");
+        toast.success("Food item updated successfully!");
       } else {
         await addMenuItem(newItem);
-        toast.success("¡Elemento de comida creado con éxito!");
+        toast.success("Food item added successfully!");
       }
+      fetchAllMenuItems();
     } catch (error) {
-      console.error("Error al guardar el elemento de comida:", error);
-      toast.error("Error al guardar el elemento de comida. Inténtelo de nuevo.");
+      toast.error("Error saving food item. Please try again.");
     }
   };
 
   const handleDeleteItem = async (id) => {
     try {
       await removeMenuItem(id);
-      toast.success("¡Elemento de comida eliminado con éxito!");
+      toast.success("Food item deleted successfully!");
+      fetchAllMenuItems();
     } catch (error) {
-      console.error("Error al eliminar el elemento de comida:", error);
-      toast.error("Error al eliminar el elemento de comida. Inténtelo de nuevo.");
+      toast.error("Error deleting food item. Please try again.");
     }
   };
 
@@ -127,10 +134,10 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   };
 
   const handleUpdateRestaurant = (updatedRestaurant) => {
-    setSelectedRestaurant(updatedRestaurant); // Actualiza el restaurante seleccionado en el contexto
+    setSelectedRestaurant(updatedRestaurant);
     setRestaurantDetails(updatedRestaurant);
     setRestaurantModalOpen(false);
-    toast.success("¡Restaurante actualizado con éxito!");
+    toast.success("Restaurant updated successfully!");
   };
 
   return (
@@ -152,57 +159,62 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         selectedRestaurant={restaurantDetails}
         openCategoryModal={() => setIsCategoryModalOpen(true)}
         client={false}
+        fetchAllCategories={fetchAllCategories}
       />
 
-      {filteredFoodItems?.length >= 0 ? (
-        categories?.map((category) => (
+      {categories
+        ?.filter((category) =>
+          selectedCategoryId ? category.id === selectedCategoryId : true
+        )
+        .map((category) => (
           <Box key={category.id} mt={8}>
-            {filteredFoodItems.some(
-              (item) => item.category === category.id
-            ) && (
-              <>
-                <Flex justifyContent="center" alignItems="center">
-                  <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" mb={4}>
-                    {category.name}
-                  </Text>
-                  <IconButton
-                    aria-label="Edit Category"
-                    icon={<MdEdit />}
-                    size={{ base: "md", md: "lg" }}
-                    variant="ghost"
-                    pb={4}
-                    onClick={() => handleEditCategory(category)}
-                  />
-                </Flex>
+            <Flex justifyContent="center" alignItems="center">
+              <Text
+                fontSize={{ base: "xl", md: "2xl" }}
+                fontWeight="bold"
+                mb={4}
+              >
+                {category.name}
+              </Text>
+              <IconButton
+                aria-label="Edit Category"
+                icon={<MdEdit />}
+                size={{ base: "md", md: "lg" }}
+                variant="ghost"
+                pb={4}
+                onClick={() => handleEditCategory(category)}
+              />
+            </Flex>
 
-                <Flex justifyContent="center" alignItems="center">
-                  <SimpleGrid
-                    columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
-                    spacing={4}
-                    maxW="100%"
-                    mx="auto"
-                  >
-                    {filteredFoodItems
-                      ?.filter((item) => item.category === category.id)
-                      .map((item) => (
-                        <FoodCard
-                          key={item.id}
-                          imageUrl={item.image_url}
-                          category={item.name}
-                          description={item.description}
-                          price={item.price}
-                          onClick={() => handleEditItem(item)}
-                        />
-                      ))}
-                  </SimpleGrid>
-                </Flex>
-              </>
+            {filteredFoodItems.some((item) => item.category === category.id) ? (
+              <Flex justifyContent="center" alignItems="center">
+                <SimpleGrid
+                  columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+                  spacing={4}
+                  maxW="100%"
+                  mx="auto"
+                >
+                  {filteredFoodItems
+                    ?.filter((item) => item.category === category.id)
+                    .map((item) => (
+                      <FoodCard
+                        key={item.id}
+                        imageUrl={item.image_url}
+                        category={item.name}
+                        description={item.description}
+                        price={item.price}
+                        onClick={() => handleEditItem(item)}
+                      />
+                    ))}
+                </SimpleGrid>
+              </Flex>
+            ) : (
+              <Text textAlign="center" fontSize="md" color="gray.500">
+                No items in this category.
+              </Text>
             )}
           </Box>
-        ))
-      ) : (
-        <EmptyFood />
-      )}
+        ))}
 
       {restaurantDetails && (
         <Box
@@ -238,7 +250,7 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
             </Text>
           </Box>
           <Text fontSize="lg" fontWeight="bold" color="gray.700">
-            Agregar Item
+            Add Item
           </Text>
         </Box>
       )}
@@ -249,6 +261,7 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         initialData={selectedCategory}
         selectedRestaurant={restaurantDetails}
         onCategoryCreated={fetchAllCategories}
+        onDelete={fetchAllCategories}
       />
 
       <FoodItemModal

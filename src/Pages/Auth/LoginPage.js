@@ -43,7 +43,7 @@ const LoginPage = () => {
         alignItems="center"
         justifyContent="center"
         p={{ base: 6, md: 8 }} // Responsive padding for form area
-        width={{ base: "100%", md: "auto" }} // Full width on mobile
+        width={{ base: "none", md: "auto" }} // Full width on mobile
       >
         {/* Pass the handleLoginSuccess to the LoginForm */}
         <LoginForm onLoginSuccess={handleLoginSuccess} />

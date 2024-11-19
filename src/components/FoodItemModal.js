@@ -57,6 +57,12 @@ const FoodItemModal = ({
     }
   }, [initialData]);
 
+  useEffect(() => {
+    if (!isOpen) {
+      resetForm();
+    }
+  }, [isOpen]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFoodItem((prevState) => ({
@@ -109,7 +115,11 @@ const FoodItemModal = ({
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xs", md: "md", lg: "lg" }}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size={{ base: "xs", md: "md", lg: "lg" }}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize={{ base: "md", md: "lg" }}>
@@ -130,7 +140,9 @@ const FoodItemModal = ({
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Description</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>
+              Description
+            </FormLabel>
             <Input
               name="description"
               value={foodItem.description}
@@ -155,7 +167,9 @@ const FoodItemModal = ({
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Image File</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>
+              Image File
+            </FormLabel>
             <Input
               name="image"
               type="file"
@@ -184,14 +198,28 @@ const FoodItemModal = ({
 
         <ModalFooter>
           {initialData && (
-            <Button colorScheme="red" mr={3} onClick={handleDelete} fontSize={{ base: "sm", md: "md" }}>
+            <Button
+              colorScheme="red"
+              mr={3}
+              onClick={handleDelete}
+              fontSize={{ base: "sm", md: "md" }}
+            >
               Delete
             </Button>
           )}
-          <Button colorScheme="blue" mr={3} onClick={handleSubmit} fontSize={{ base: "sm", md: "md" }}>
+          <Button
+            colorScheme="blue"
+            mr={3}
+            onClick={handleSubmit}
+            fontSize={{ base: "sm", md: "md" }}
+          >
             Save
           </Button>
-          <Button variant="ghost" onClick={onClose} fontSize={{ base: "sm", md: "md" }}>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            fontSize={{ base: "sm", md: "md" }}
+          >
             Cancel
           </Button>
         </ModalFooter>

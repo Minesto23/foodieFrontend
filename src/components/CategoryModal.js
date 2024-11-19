@@ -14,6 +14,7 @@ import {
   Grid,
   Icon,
   Box,
+  useToast,
 } from "@chakra-ui/react";
 import {
   FaDrumstickBite,
@@ -65,6 +66,7 @@ const CategoryModal = ({
   selectedRestaurant,
   onCategoryCreated,
 }) => {
+  const toast = useToast();
   const [category, setCategory] = useState({
     name: "",
     description: "",
@@ -105,6 +107,7 @@ const CategoryModal = ({
   };
 
   const handleSubmit = async () => {
+    toast({ title: "Processing...", status: "info", duration: 1000 });
     try {
       const categoryPayload = {
         ...category,
@@ -113,35 +116,66 @@ const CategoryModal = ({
 
       if (initialData) {
         await updateCategory(initialData.id, categoryPayload);
+        toast({ title: "Category updated successfully.", status: "success" });
+        onCategoryCreated();
       } else {
         await createCategory(categoryPayload);
+        toast({ title: "Category created successfully.", status: "success" });
         if (onCategoryCreated) {
           onCategoryCreated();
         }
       }
 
-      onSubmit(categoryPayload);
+      // onSubmit(categoryPayload);
+      onCategoryCreated();
       resetForm();
       onClose();
     } catch (error) {
       console.error("Error submitting category:", error);
+      toast({
+        title: "Error submitting category.",
+        description: error.message || "Please try again.",
+        status: "error",
+      });
     }
   };
 
   const handleDelete = async () => {
-    if (onDelete && initialData) {
+    console.log(initialData);
+    if (initialData) {
+      toast({ title: "Deleting...", status: "info", duration: 1000 });
       try {
+        console.log(`Attempting to delete category with ID: ${initialData.id}`);
         await deleteCategory(initialData.id);
-        onDelete(initialData.id);
+        toast({ title: "Category deleted successfully.", status: "success" });
+        onDelete(initialData.id); // Update parent component
         onClose();
       } catch (error) {
         console.error("Error deleting category:", error);
+        toast({
+          title: "Error deleting category.",
+          description: error.message || "Please try again.",
+          status: "error",
+        });
       }
+    } else {
+      console.warn(
+        "Delete operation failed: initialData or onDelete is missing."
+      );
+      toast({
+        title: "No category to delete.",
+        status: "warning",
+        duration: 2000,
+      });
     }
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} size={{ base: "xs", md: "md", lg: "lg" }}>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      size={{ base: "xs", md: "md", lg: "lg" }}
+    >
       <ModalOverlay />
       <ModalContent>
         <ModalHeader fontSize={{ base: "lg", md: "xl" }}>
@@ -150,7 +184,9 @@ const CategoryModal = ({
         <ModalCloseButton />
         <ModalBody>
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Category Name</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>
+              Category Name
+            </FormLabel>
             <Input
               name="name"
               value={category.name}
@@ -162,7 +198,9 @@ const CategoryModal = ({
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Description</FormLabel>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>
+              Description
+            </FormLabel>
             <Input
               name="description"
               value={category.description}
@@ -174,14 +212,21 @@ const CategoryModal = ({
           </FormControl>
 
           <FormControl mb={4}>
-            <FormLabel fontSize={{ base: "sm", md: "md" }}>Select Icon</FormLabel>
-            <Grid templateColumns={{ base: "repeat(3, 1fr)", md: "repeat(5, 1fr)" }} gap={4}>
+            <FormLabel fontSize={{ base: "sm", md: "md" }}>
+              Select Icon
+            </FormLabel>
+            <Grid
+              templateColumns={{ base: "repeat(3, 1fr)", md: "repeat(5, 1fr)" }}
+              gap={4}
+            >
               {iconList.map((icon, index) => (
                 <Box
                   key={index}
                   p={2}
                   border="1px solid"
-                  borderColor={category.icon_name === icon.name ? "blue.400" : "gray.200"}
+                  borderColor={
+                    category.icon_name === icon.name ? "blue.400" : "gray.200"
+                  }
                   borderRadius="md"
                   cursor="pointer"
                   onClick={() => handleIconSelect(icon.name)}
@@ -191,7 +236,11 @@ const CategoryModal = ({
                   h={{ base: 10, md: 12 }}
                   w={{ base: 10, md: 12 }}
                 >
-                  <Icon as={icon.component} w={{ base: 5, md: 6 }} h={{ base: 5, md: 6 }} />
+                  <Icon
+                    as={icon.component}
+                    w={{ base: 5, md: 6 }}
+                    h={{ base: 5, md: 6 }}
+                  />
                 </Box>
               ))}
             </Grid>
@@ -200,14 +249,27 @@ const CategoryModal = ({
 
         <ModalFooter>
           {initialData && (
-            <Button colorScheme="red" mr="auto" onClick={handleDelete} fontSize={{ base: "sm", md: "md" }}>
+            <Button
+              colorScheme="red"
+              mr="auto"
+              onClick={handleDelete}
+              fontSize={{ base: "sm", md: "md" }}
+            >
               Delete
             </Button>
           )}
-          <Button colorScheme="blue" onClick={handleSubmit} fontSize={{ base: "sm", md: "md" }}>
+          <Button
+            colorScheme="blue"
+            onClick={handleSubmit}
+            fontSize={{ base: "sm", md: "md" }}
+          >
             {initialData ? "Update" : "Save"}
           </Button>
-          <Button variant="ghost" onClick={onClose} fontSize={{ base: "sm", md: "md" }}>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            fontSize={{ base: "sm", md: "md" }}
+          >
             Cancel
           </Button>
         </ModalFooter>

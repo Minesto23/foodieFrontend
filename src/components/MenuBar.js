@@ -48,11 +48,17 @@ const MenuBar = ({
     FaBeer: FaBeer,
   };
 
-  const { menuCategories: categories, fetchAllCategories } = UseCategories(selectedRestaurant);
+  const { menuCategories: categories, fetchAllCategories } =
+    UseCategories(selectedRestaurant);
 
   useEffect(() => {
     fetchAllCategories();
-  }, [fetchAllCategories, isCategoryModalOpen]);
+  }, [fetchAllCategories, isCategoryModalOpen]); // Fetch categories whenever modal state changes
+
+  const handleCategorySubmit = () => {
+    fetchAllCategories(); // Refresh categories after creating/editing a category
+    setIsCategoryModalOpen(false); // Close the modal
+  };
 
   let addCategoryButton = null;
   if (selectedRestaurant?.name !== "Select a restaurant" && !client) {
@@ -72,7 +78,7 @@ const MenuBar = ({
         mt={{ base: 4, md: 8 }}
         gap={{ base: 4, md: 6 }}
         wrap="wrap"
-        px={{ base: 4, md: 10, lg: 20 }} // Responsive padding to control margins
+        px={{ base: 4, md: 10, lg: 20 }}
       >
         <CategoryButton
           icon={FaUtensils}
@@ -92,12 +98,14 @@ const MenuBar = ({
         {addCategoryButton}
       </Flex>
 
-      {/* Modal de categoría */}
+      {/* Category Modal */}
       <CategoryModal
         isOpen={isCategoryModalOpen}
         onClose={() => setIsCategoryModalOpen(false)}
-        onSubmit={(newCategory) => console.log(newCategory)}
+        onSubmit={handleCategorySubmit}
         selectedRestaurant={selectedRestaurant}
+        onDelete={fetchAllCategories}
+        onCategoryCreated={fetchAllCategories}
       />
     </Box>
   );
