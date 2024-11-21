@@ -29,6 +29,7 @@ import CreateRestaurantModal from "./RestaurantModalCreate";
 import HelpModal from "./HelpModal";
 import ExportModal from "./ExportModal";
 import { useRestaurantContext } from "../context/RestaurantContext";
+import { Link as ChakraLink } from "@chakra-ui/react";
 
 /**
  * Componente Header que contiene la navegación principal, opciones de usuario
@@ -96,18 +97,20 @@ const Header = ({ onSelectRestaurant }) => {
     <Box bg={colorMode === "light" ? "gray.100" : "gray.900"} px={6}>
       <Flex h={16} alignItems="center" justifyContent="space-between">
         {/* Logo y título */}
-        <Flex alignItems="center" pl={{ base: 2, md: 10 }}>
-          <Image
-            src="/logo192.png"
-            alt="Logo"
-            boxSize={{ base: "30px", md: "40px" }}
-            objectFit="cover"
-            mr={2}
-          />
-          <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold" ml={3}>
-            Foodie
-          </Text>
-        </Flex>
+        <ChakraLink href="https://detipfoodiee.netlify.app/home" isExternal>
+          <Flex alignItems="center" pl={{ base: 2, md: 10 }} cursor="pointer">
+            <Image
+              src="/logo192.png"
+              alt="Logo"
+              boxSize={{ base: "30px", md: "40px" }}
+              objectFit="cover"
+              mr={2}
+            />
+            <Text fontSize={{ base: "lg", md: "xl" }} fontWeight="bold" ml={3}>
+              Foodie
+            </Text>
+          </Flex>
+        </ChakraLink>
 
         {/* Botón para menú móvil */}
         <IconButton

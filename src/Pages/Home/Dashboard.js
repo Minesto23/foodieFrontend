@@ -187,38 +187,43 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
               {category.name}
             </Text>
             <IconButton
-              aria-label="Editar categoría"
+              aria-label="Edit Category"
               icon={<MdEdit />}
-              size="lg"
+              size={{ base: "md", md: "lg" }}
               variant="ghost"
+              pb={4}
               onClick={() => handleEditCategory(category)}
             />
           </Flex>
 
-          {filteredFoodItems.some((item) => item.category === category.id) ? (
-            <SimpleGrid columns={{ base: 1, md: 3, lg: 4 }} spacing={4}>
-              {filteredFoodItems
-                .filter((item) => item.category === category.id)
-                .map((item) => (
-                  <FoodCard
-                    key={item.id}
-                    imageUrl={item.image_url}
-                    category={item.name}
-                    description={item.description}
-                    price={item.price}
-                    onClick={() => handleEditItem(item)}
-                  />
-                ))}
-            </SimpleGrid>
-          ) : (
-            <Text textAlign="center" color="gray.500">
-              No hay elementos en esta categoría.
-            </Text>
-          )}
+          <Flex justifyContent="center">
+            {filteredFoodItems.some((item) => item.category === category.id) ? (
+              <SimpleGrid
+                columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+                spacing={4}
+              >
+                {filteredFoodItems
+                  .filter((item) => item.category === category.id)
+                  .map((item) => (
+                    <FoodCard
+                      key={item.id}
+                      imageUrl={item.image_url}
+                      category={item.name}
+                      description={item.description}
+                      price={item.price}
+                      onClick={() => handleEditItem(item)}
+                    />
+                  ))}
+              </SimpleGrid>
+            ) : (
+              <Text textAlign="center" fontSize="md" color="gray.500">
+                No items in this category.
+              </Text>
+            )}
+          </Flex>
         </Box>
       ))}
 
-      {/* Botón para añadir un nuevo elemento */}
       <Box
         bg="white"
         boxShadow="md"
@@ -226,14 +231,34 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         p={4}
         textAlign="center"
         maxW="200px"
-        mx="auto"
+        _hover={{
+          boxShadow: "lg",
+          transform: "scale(1.05)",
+          transition: "0.3s",
+        }}
         cursor="pointer"
         onClick={() => setIsItemModalOpen(true)}
-        _hover={{ transform: "scale(1.05)" }}
         mt={8}
+        mx="auto"
       >
-        <Text fontSize="2xl">+</Text>
-        <Text fontSize="lg">Añadir Elemento</Text>
+        <Box
+          bg="gray.200"
+          borderRadius="full"
+          width="80px"
+          height="80px"
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+          mx="auto"
+          mb={4}
+        >
+          <Text fontSize="4xl" color="gray.600">
+            +
+          </Text>
+        </Box>
+        <Text fontSize="lg" fontWeight="bold" color="gray.700">
+          Añadir Elemento
+        </Text>
       </Box>
 
       {/* Modales */}
