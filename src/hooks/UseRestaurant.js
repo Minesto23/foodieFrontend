@@ -18,7 +18,6 @@ export const UseRestaurant = () => {
     try {
       const data = await getAllRestaurants(); // Llamada al controlador para obtener restaurantes
       setRestaurants(data); // Actualizar el estado con los datos obtenidos
-      console.log(data, "hook"); // Depuración opcional
     } catch (error) {
       console.error("Error fetching restaurants:", error); // Manejo básico de errores
     } finally {

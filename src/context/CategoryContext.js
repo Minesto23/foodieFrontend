@@ -13,7 +13,7 @@ export const CategoryProvider = ({ children }) => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   // Fetch categories for a specific restaurant
   const fetchCategories = useCallback(async (restaurantId) => {
     if (!restaurantId) return;
@@ -33,7 +33,7 @@ export const CategoryProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isCategoryModalOpen]);
 
   // Add a new category
   const addCategory = async (newCategory, callback) => {
@@ -94,6 +94,8 @@ export const CategoryProvider = ({ children }) => {
         addCategory,
         editCategory,
         removeCategory,
+        isCategoryModalOpen,
+        setIsCategoryModalOpen
       }}
     >
       {children}

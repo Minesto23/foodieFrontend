@@ -24,21 +24,22 @@ import UseMenuItems from "../../hooks/UseMenuItems";
 const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
-  const { restaurants } = useRestaurantContext();
+  const { restaurants, isRestaurantModalOpen, setRestaurantModalOpen } =
+    useRestaurantContext();
   const {
     categories,
     fetchCategories,
     addCategory,
     updateCategory,
     removeCategory,
+    isCategoryModalOpen,
+    setIsCategoryModalOpen,
   } = useCategoryContext();
 
   const [restaurantDetails, setRestaurantDetails] = useState({});
   const [selectedItem, setSelectedItem] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [isItemModalOpen, setIsItemModalOpen] = useState(false);
-  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const {

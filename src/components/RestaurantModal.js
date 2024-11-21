@@ -125,9 +125,6 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
    * Maneja la acción de guardar (crear o actualizar) un restaurante.
    */
   const handleSubmit = async () => {
-    toast.loading("Procesando...");
-    setLoading(true);
-
     try {
       if (initialData) {
         await updateRestaurant(initialData.id, restaurantDetails);

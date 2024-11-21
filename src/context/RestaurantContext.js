@@ -14,7 +14,7 @@ const RestaurantContext = createContext();
 export const RestaurantProvider = ({ children }) => {
   const { fetchAllRestaurants, restaurants } = UseRestaurant(); // Hook personalizado
   const [isLoading, setIsLoading] = useState(true); // Estado para manejar la carga inicial
-
+  const [isRestaurantModalOpen, setRestaurantModalOpen] = useState(false);
   /**
    * Efecto para obtener los restaurantes al montar el componente
    */
@@ -30,11 +30,17 @@ export const RestaurantProvider = ({ children }) => {
     };
 
     fetchRestaurants();
-  }, [fetchAllRestaurants]); // Dependencia para asegurar que la función esté actualizada
+  }, [fetchAllRestaurants, isRestaurantModalOpen, setRestaurantModalOpen]); // Dependencia para asegurar que la función esté actualizada
 
   return (
     <RestaurantContext.Provider
-      value={{ restaurants, isLoading, fetchAllRestaurants }}
+      value={{
+        restaurants,
+        isLoading,
+        fetchAllRestaurants,
+        isRestaurantModalOpen,
+        setRestaurantModalOpen,
+      }}
     >
       {children}
     </RestaurantContext.Provider>
