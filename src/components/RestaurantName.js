@@ -21,7 +21,7 @@ const RestaurantName = ({ name, onEdit }) => {
         </Text>
 
         {/* Botón de edición, visible solo si hay un restaurante seleccionado */}
-        {name !== "Select a restaurant" && (
+        {name !== "Selecciona un restaurante" && (
           <IconButton
             aria-label="Editar Restaurante"
             icon={<MdEdit />}

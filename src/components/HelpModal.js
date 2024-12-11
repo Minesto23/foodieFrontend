@@ -182,7 +182,7 @@ const HelpModal = ({ isOpen, onClose }) => {
             onClick={onClose}
             fontSize={{ base: "sm", md: "md" }}
           >
-            Cerrar
+            Finalizar
           </Button>
         </ModalFooter>
       </ModalContent>

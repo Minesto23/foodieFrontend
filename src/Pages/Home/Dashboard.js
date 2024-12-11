@@ -24,6 +24,7 @@ import UseMenuItems from "../../hooks/UseMenuItems";
 const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   const { colorMode } = useColorMode();
   const isDark = colorMode === "dark";
+
   const { restaurants, isRestaurantModalOpen, setRestaurantModalOpen } =
     useRestaurantContext();
   const {
@@ -60,33 +61,38 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
    * Fetch inicial para manejar restaurantes y datos relacionados.
    */
   useEffect(() => {
-    if (!restaurants || restaurants.length === 0) {
+    if (restaurants && restaurants.length > 0) {
+      const selected = selectedRestaurant || restaurants[0];
+      setRestaurantDetails(selected);
+      fetchCategories(selected.id);
+      fetchAllMenuItems();
+      onHelpModalClose(); // Cierra el HelpModal si ya hay restaurantes
+    } else {
+      setRestaurantDetails({ name: "Selecciona un restaurante" });
       onHelpModalOpen();
-      toast("No se encontraron restaurantes. Por favor, añade uno.", {
-        status: "info",
-      });
-    } else {
-      onHelpModalClose();
     }
-
-    if (selectedRestaurant) {
-      setRestaurantDetails(selectedRestaurant);
-    } else {
-      setRestaurantDetails(
-        restaurants[0] || { name: "Selecciona un restaurante" }
-      );
-    }
-
-    fetchCategories(selectedRestaurant?.id);
-    fetchAllMenuItems();
+    // eslint-disable-next-line
   }, [
+    restaurants,
     selectedRestaurant,
     fetchCategories,
     fetchAllMenuItems,
-    restaurants,
-    onHelpModalClose,
     onHelpModalOpen,
   ]);
+
+  /**
+   * Filtrar categorías para el restaurante seleccionado.
+   */
+  const filteredCategories = categories.filter(
+    (category) => category.restaurant === restaurantDetails?.id
+  );
+
+  /**
+   * Filtrar elementos del menú para las categorías visibles.
+   */
+  const filteredMenuItems = menuItems.filter((item) =>
+    filteredCategories.some((category) => category.id === item.category)
+  );
 
   /**
    * Manejar creación o edición de elementos del menú.
@@ -101,6 +107,8 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
         toast.success("¡Elemento de comida añadido con éxito!");
       }
       fetchAllMenuItems();
+      setSelectedItem(null);
+      setIsItemModalOpen(false);
     } catch (error) {
       toast.error("Error al guardar el elemento. Inténtelo de nuevo.");
     }
@@ -120,13 +128,6 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   };
 
   /**
-   * Filtrar elementos del menú por categoría seleccionada.
-   */
-  const filteredFoodItems = selectedCategoryId
-    ? menuItems.filter((item) => item.category === selectedCategoryId)
-    : menuItems;
-
-  /**
    * Manejar selección de categorías.
    */
   const handleCategorySelect = (categoryId) =>
@@ -135,7 +136,7 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
   /**
    * Manejar edición de categorías.
    */
-  const handleEditCategory = (category) => {
+  const handleEditCategory = async (category) => {
     setSelectedCategory(category);
     setIsCategoryModalOpen(true);
   };
@@ -180,31 +181,49 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
       />
 
       {/* Mostrar categorías y elementos del menú */}
-      {categories.map((category) => (
-        <Box key={category.id} mt={8}>
-          <Flex justifyContent="center" alignItems="center">
-            <Text fontSize={{ base: "xl", md: "2xl" }} fontWeight="bold" mb={4}>
-              {category.name}
-            </Text>
-            <IconButton
-              aria-label="Edit Category"
-              icon={<MdEdit />}
-              size={{ base: "md", md: "lg" }}
-              variant="ghost"
-              pb={4}
-              onClick={() => handleEditCategory(category)}
-            />
-          </Flex>
+      {filteredCategories.map((category) => {
+        // Verificar si esta categoría es la seleccionada
+        const isSelected = category.id === selectedCategoryId;
 
-          <Flex justifyContent="center">
-            {filteredFoodItems.some((item) => item.category === category.id) ? (
-              <SimpleGrid
-                columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
-                spacing={4}
+        // Filtrar los elementos del menú para esta categoría
+        const itemsInCategory = filteredMenuItems.filter(
+          (item) => item.category === category.id
+        );
+
+        // Si hay una categoría seleccionada y no es la actual, no mostrarla
+        if (selectedCategoryId && !isSelected) {
+          return null;
+        }
+
+        return (
+          <Box key={category.id} mt={8}>
+            {/* Nombre de la categoría */}
+            <Flex justifyContent="center" alignItems="center">
+              <Text
+                fontSize={{ base: "xl", md: "2xl" }}
+                fontWeight="bold"
+                mb={4}
               >
-                {filteredFoodItems
-                  .filter((item) => item.category === category.id)
-                  .map((item) => (
+                {category.name}
+              </Text>
+              <IconButton
+                aria-label="Edit Category"
+                icon={<MdEdit />}
+                size={{ base: "md", md: "lg" }}
+                variant="ghost"
+                pb={4}
+                onClick={() => handleEditCategory(category)}
+              />
+            </Flex>
+
+            {/* Elementos del menú */}
+            <Flex justifyContent="center">
+              {itemsInCategory.length > 0 ? (
+                <SimpleGrid
+                  columns={{ base: 1, sm: 2, md: 3, lg: 4, xl: 5 }}
+                  spacing={4}
+                >
+                  {itemsInCategory.map((item) => (
                     <FoodCard
                       key={item.id}
                       imageUrl={item.image_url}
@@ -214,16 +233,18 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
                       onClick={() => handleEditItem(item)}
                     />
                   ))}
-              </SimpleGrid>
-            ) : (
-              <Text textAlign="center" fontSize="md" color="gray.500">
-                No items in this category.
-              </Text>
-            )}
-          </Flex>
-        </Box>
-      ))}
+                </SimpleGrid>
+              ) : (
+                <Text textAlign="center" fontSize="md" color="gray.500">
+                  No items en esta categoria.
+                </Text>
+              )}
+            </Flex>
+          </Box>
+        );
+      })}
 
+      {/* Botón para añadir un nuevo elemento */}
       <Box
         bg="white"
         boxShadow="md"
@@ -264,7 +285,10 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
       {/* Modales */}
       <CategoryModal
         isOpen={isCategoryModalOpen}
-        onClose={() => setIsCategoryModalOpen(false)}
+        onClose={() => {
+          setIsCategoryModalOpen(false);
+          setSelectedCategory(null);
+        }}
         initialData={selectedCategory}
         selectedRestaurant={restaurantDetails}
         onSubmit={selectedCategory ? updateCategory : addCategory}
@@ -272,11 +296,14 @@ const MainPage = ({ selectedRestaurant, setSelectedRestaurant }) => {
       />
       <FoodItemModal
         isOpen={isItemModalOpen}
-        onClose={() => setIsItemModalOpen(false)}
+        onClose={() => {
+          setIsItemModalOpen(false);
+          setSelectedItem(null);
+        }}
         onSubmit={handleNewFoodItem}
         onDelete={handleDeleteItem}
         initialData={selectedItem}
-        categories={categories}
+        categories={filteredCategories}
       />
       <RestaurantModal
         isOpen={isRestaurantModalOpen}

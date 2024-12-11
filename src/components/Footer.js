@@ -55,7 +55,10 @@ const Footer = () => {
           <Link href="/terms" _hover={{ textDecoration: "underline" }}>
             Términos del Servicio
           </Link>
-          <Link href="/contact" _hover={{ textDecoration: "underline" }}>
+          <Link
+            href="https://www.detipcompany.com/Contact"
+            _hover={{ textDecoration: "underline" }}
+          >
             Contáctanos
           </Link>
         </Stack>

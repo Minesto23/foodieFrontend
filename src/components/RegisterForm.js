@@ -35,21 +35,36 @@ const RegisterForm = () => {
    * Maneja el evento de registro al enviar los datos.
    */
   const handleRegister = async () => {
+    if (!email || !password) {
+      toast.error("El correo y la contraseña son obligatorios.");
+      return;
+    }
+
     try {
-      // Solicitud para crear un nuevo usuario
       const response = await Axios.post(
         "https://detip.pythonanywhere.com/api/users/",
         {
           email: email,
           password: password,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
 
-      toast.success("¡Registro exitoso!"); // Notificación de éxito
-      navigate("/login"); // Redirige al usuario a la página de inicio de sesión
+      toast.success("¡Registro exitoso!");
+      navigate("/login");
     } catch (error) {
-      console.error("Error al registrarse:", error);
-      toast.error("Error al registrarse. Por favor revisa la información."); // Notificación de error
+      console.error(
+        "Error al registrarse:",
+        error.response?.data || error.message
+      );
+      toast.error(
+        error.response?.data?.detail ||
+          "Error al registrarse. Por favor revisa la información."
+      );
     }
   };
 

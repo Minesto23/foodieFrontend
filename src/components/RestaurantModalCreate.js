@@ -21,7 +21,14 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
+import { FaMapMarkerAlt } from "react-icons/fa";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { Icon, IconButton } from "@chakra-ui/react";
+import "leaflet/dist/leaflet.css";
 import toast from "react-hot-toast";
+import L from "leaflet";
+import ReactDOMServer from "react-dom/server";
+import axios from "axios";
 import { createRestaurant } from "../api/controllers/Restaurants";
 
 /**
@@ -44,6 +51,8 @@ const CreateRestaurantModal = ({ isOpen, onClose }) => {
     logo: null,
     restaurant_type: [],
     services: [],
+    latitude: null,
+    longitude: null,
   });
 
   const categories = [
@@ -98,6 +107,30 @@ const CreateRestaurantModal = ({ isOpen, onClose }) => {
     { value: "bar", label: "Bar" },
   ];
 
+  const [showMap, setShowMap] = useState(false);
+
+  const fetchAddress = async (lat, lon) => {
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+      );
+      const data = response.data;
+      if (data && data.display_name) {
+        setRestaurantDetails((prev) => ({
+          ...prev,
+          location: data.display_name,
+          latitude: lat,
+          longitude: lon,
+        }));
+        // toast.success("¡Dirección seleccionada con éxito!");
+      } else {
+        // toast.error("No se pudo obtener la dirección.");
+      }
+    } catch (error) {
+      console.error("Error al obtener la dirección:", error);
+      toast.error("Error al buscar la dirección.");
+    }
+  };
   /**
    * Maneja los cambios en los campos del formulario.
    *
@@ -156,6 +189,50 @@ const CreateRestaurantModal = ({ isOpen, onClose }) => {
     }
   };
 
+  const customIcon = L.divIcon({
+    html: ReactDOMServer.renderToString(
+      <FaMapMarkerAlt color="red" size={24} />
+    ), // Renderiza el ícono como SVG
+    className: "custom-leaflet-icon", // Clase para estilos adicionales
+    iconSize: [24, 24], // Tamaño del ícono
+    iconAnchor: [12, 24], // Punto de anclaje (centro inferior del ícono)
+  });
+
+  const MapSelector = () => {
+    const LocationMarker = () => {
+      useMapEvents({
+        click(e) {
+          const { lat, lng } = e.latlng;
+          fetchAddress(lat, lng);
+        },
+      });
+      return null;
+    };
+
+    return (
+      <MapContainer
+        center={[
+          restaurantDetails.latitude || 20.5937,
+          restaurantDetails.longitude || -100.3906,
+        ]}
+        zoom={13}
+        style={{ height: "400px", width: "100%" }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {restaurantDetails.latitude && restaurantDetails.longitude && (
+          <Marker
+            position={[restaurantDetails.latitude, restaurantDetails.longitude]}
+            icon={customIcon}
+          />
+        )}
+        <LocationMarker />
+      </MapContainer>
+    );
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
       <ModalOverlay />
@@ -174,12 +251,21 @@ const CreateRestaurantModal = ({ isOpen, onClose }) => {
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Ubicación</FormLabel>
-            <Input
-              name="location"
-              value={restaurantDetails.location}
-              onChange={handleChange}
-              placeholder="123 Calle Principal"
-            />
+            <Flex alignItems="center">
+              <IconButton
+                icon={<Icon as={FaMapMarkerAlt} />}
+                onClick={() => setShowMap(!showMap)}
+                aria-label="Seleccionar ubicación"
+                mr={2}
+              />
+              <Input
+                name="location"
+                value={restaurantDetails.location}
+                onChange={handleChange}
+                placeholder="Dirección (opcional, seleccionada automáticamente)"
+              />
+            </Flex>
+            {showMap && <MapSelector />}
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Horario de Apertura</FormLabel>

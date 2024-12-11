@@ -112,6 +112,24 @@ const Header = ({ onSelectRestaurant }) => {
           </Flex>
         </ChakraLink>
 
+        {/* Mensaje central */}
+        <Flex
+          justifyContent="center"
+          alignItems="center"
+          flexGrow={1}
+          display={{ base: "none", md: "flex" }}
+        >
+          <Text
+            fontSize="md"
+            fontWeight="bold"
+            color={colorMode === "light" ? "gray.600" : "gray.300"}
+            title="Si encuentras errores, por favor contáctanos."
+            textAlign="center"
+          >
+            Estamos en fase beta. Si encuentras errores, por favor contáctanos.
+          </Text>
+        </Flex>
+
         {/* Botón para menú móvil */}
         <IconButton
           size="md"

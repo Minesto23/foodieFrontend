@@ -49,6 +49,7 @@ const FoodItemModal = ({
    */
   const resetForm = () => {
     setFoodItem({
+      id: "",
       name: "",
       description: "",
       price: "",

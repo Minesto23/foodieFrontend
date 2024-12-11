@@ -31,8 +31,9 @@ const FoodCard = ({ imageUrl, category, description, price, onClick }) => {
       onClick={onClick}
     >
       {/* Imagen del elemento */}
+      {/* Imagen del elemento */}
       <Image
-        src={imageUrl}
+        src={imageUrl || "logo192.png"} // Default to "logo192.png" if imageUrl is null or undefined
         alt={`Imagen de ${category}`} // Texto alternativo para accesibilidad
         borderRadius="md"
         mb={4} // Margen inferior para separar de los textos
@@ -40,6 +41,10 @@ const FoodCard = ({ imageUrl, category, description, price, onClick }) => {
         height={{ base: "120px", md: "140px", lg: "150px" }} // Tamaño responsive de la imagen
         width="100%" // Imagen ocupa todo el ancho del contenedor
         mx="auto"
+        onError={(e) => {
+          // Set a fallback image if the link is broken
+          e.target.src = "logo192.png";
+        }}
       />
 
       {/* Nombre de la categoría */}

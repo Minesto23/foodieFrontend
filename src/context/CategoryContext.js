@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 import {
   getAllCategories,
   createCategory,
@@ -14,18 +20,15 @@ export const CategoryProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+
   // Fetch categories for a specific restaurant
   const fetchCategories = useCallback(async (restaurantId) => {
     if (!restaurantId) return;
     setLoading(true);
     setError(null);
     try {
-      const data = await getAllCategories();
-      const filteredCategories = data.filter(
-        (category) => category.restaurant === restaurantId
-      );
+      const filteredCategories = await getAllCategories({ restaurantId }); // Supongamos que la API acepta un filtro
       setCategories(filteredCategories);
-      toast.success("Categorías cargadas con éxito.");
     } catch (err) {
       console.error("Error fetching categories:", err);
       setError("Error fetching categories");
@@ -33,7 +36,7 @@ export const CategoryProvider = ({ children }) => {
     } finally {
       setLoading(false);
     }
-  }, [isCategoryModalOpen]);
+  }, []);
 
   // Add a new category
   const addCategory = async (newCategory, callback) => {
@@ -84,6 +87,14 @@ export const CategoryProvider = ({ children }) => {
     }
   };
 
+  // Automatically fetch categories when the modal closes
+  useEffect(() => {
+    if (!isCategoryModalOpen && categories.length > 0) {
+      const restaurantId = categories[0].restaurant;
+      if (restaurantId) fetchCategories(restaurantId);
+    }
+  }, [isCategoryModalOpen, fetchCategories, setIsCategoryModalOpen]);
+
   return (
     <CategoryContext.Provider
       value={{
@@ -95,7 +106,7 @@ export const CategoryProvider = ({ children }) => {
         editCategory,
         removeCategory,
         isCategoryModalOpen,
-        setIsCategoryModalOpen
+        setIsCategoryModalOpen,
       }}
     >
       {children}

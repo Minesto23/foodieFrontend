@@ -20,7 +20,14 @@ import {
   SimpleGrid,
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
+import { FaMapMarkerAlt } from "react-icons/fa";
+import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
+import { Icon, IconButton } from "@chakra-ui/react";
+import "leaflet/dist/leaflet.css";
 import toast from "react-hot-toast";
+import L from "leaflet";
+import ReactDOMServer from "react-dom/server";
+import axios from "axios";
 import {
   createRestaurant,
   updateRestaurant,
@@ -48,6 +55,8 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
     logo: null,
     restaurant_type: [],
     services: [],
+    latitude: null,
+    longitude: null,
   });
 
   const categories = [
@@ -115,17 +124,48 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
       logo: null,
       restaurant_type: [],
       services: [],
+      latitude: null,
+      longitude: null,
     });
+  };
+
+  const [showMap, setShowMap] = useState(false);
+
+  const fetchAddress = async (lat, lon) => {
+    try {
+      const response = await axios.get(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`
+      );
+      const data = response.data;
+      if (data && data.display_name) {
+        setRestaurantDetails((prev) => ({
+          ...prev,
+          location: data.display_name,
+          latitude: lat,
+          longitude: lon,
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching address:", error);
+    }
   };
 
   useEffect(() => {
     if (initialData) {
       setRestaurantDetails({
         ...initialData,
-        logo: null, // Excluir el logo para actualizaciones
+        logo: null, // Exclude the logo for updates
       });
     } else {
       resetForm();
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          fetchAddress(coords.latitude, coords.longitude);
+        },
+        (error) => {
+          console.error("Error fetching current location:", error);
+        }
+      );
     }
   }, [initialData]);
 
@@ -139,6 +179,13 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
     setRestaurantDetails((prev) => ({
       ...prev,
       [name]: value,
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    setRestaurantDetails((prevState) => ({
+      ...prevState,
+      logo: e.target.files[0],
     }));
   };
 
@@ -230,6 +277,54 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
     </Menu>
   );
 
+  const customIcon = L.divIcon({
+    html: ReactDOMServer.renderToString(
+      <FaMapMarkerAlt color="red" size={24} />
+    ), // Renderiza el ícono como SVG
+    className: "custom-leaflet-icon", // Clase para estilos adicionales
+    iconSize: [24, 24], // Tamaño del ícono
+    iconAnchor: [12, 24], // Punto de anclaje (centro inferior del ícono)
+  });
+
+  const handleLocationSelect = (lat, lon) => {
+    fetchAddress(lat, lon);
+  };
+
+  const MapSelector = () => {
+    const LocationMarker = () => {
+      useMapEvents({
+        click(e) {
+          const { lat, lng } = e.latlng;
+          handleLocationSelect(lat, lng); // Updates the address and coordinates
+        },
+      });
+      return null;
+    };
+
+    return (
+      <MapContainer
+        center={[
+          restaurantDetails.latitude || 20.5937,
+          restaurantDetails.longitude || -100.3906,
+        ]}
+        zoom={13}
+        style={{ height: "400px", width: "100%" }}
+      >
+        <TileLayer
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        />
+        {restaurantDetails.latitude && restaurantDetails.longitude && (
+          <Marker
+            position={[restaurantDetails.latitude, restaurantDetails.longitude]}
+            icon={customIcon}
+          />
+        )}
+        <LocationMarker />
+      </MapContainer>
+    );
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} size={{ base: "full", md: "lg" }}>
       <ModalOverlay />
@@ -250,12 +345,21 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Ubicación</FormLabel>
-            <Input
-              name="location"
-              value={restaurantDetails.location}
-              onChange={handleChange}
-              placeholder="123 Calle Principal"
-            />
+            <Flex alignItems="center">
+              <IconButton
+                icon={<Icon as={FaMapMarkerAlt} />}
+                onClick={() => setShowMap(!showMap)}
+                aria-label="Seleccionar ubicación"
+                mr={2}
+              />
+              <Input
+                name="location"
+                value={restaurantDetails.location}
+                onChange={handleChange}
+                placeholder="Dirección (opcional, seleccionada automáticamente)"
+              />
+            </Flex>
+            {showMap && <MapSelector />}
           </FormControl>
           <FormControl mb={4}>
             <FormLabel>Horario de Apertura</FormLabel>
@@ -285,6 +389,10 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
             />
           </FormControl>
           <FormControl mb={4}>
+            <FormLabel>Logo</FormLabel>
+            <Input type="file" name="logo" onChange={handleFileChange} />
+          </FormControl>
+          <FormControl mb={4}>
             <FormLabel>Tipo de Restaurante</FormLabel>
             {renderSwitchList(categories, "restaurant_type")}
           </FormControl>
@@ -299,12 +407,18 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
               colorScheme="red"
               mr={3}
               onClick={handleDelete}
-              isLoading={loading}
+              isLoading={loading} // Shows spinner during loading
+              loadingText="Eliminando..." // Text shown during loading
             >
               Eliminar
             </Button>
           )}
-          <Button colorScheme="blue" onClick={handleSubmit} isLoading={loading}>
+          <Button
+            colorScheme="blue"
+            onClick={handleSubmit}
+            isLoading={loading} // Shows spinner during loading
+            loadingText={initialData ? "Guardando..." : "Agregando..."} // Text shown during loading
+          >
             {initialData ? "Guardar Cambios" : "Agregar Restaurante"}
           </Button>
           <Button variant="ghost" onClick={onClose}>

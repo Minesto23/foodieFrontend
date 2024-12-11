@@ -118,14 +118,32 @@ const MainPage = () => {
               (item) => item.category === category.id
             ) && (
               <>
-                <Flex justifyContent="center" alignItems="center">
+                <Flex
+                  justifyContent="center"
+                  alignItems="center"
+                  flexDirection="column"
+                >
+                  {/* Category Name */}
                   <Text
                     fontSize={{ base: "xl", md: "2xl" }}
                     fontWeight="bold"
-                    mb={4}
+                    mb={2} // Adjust spacing
                   >
                     {category.name}
                   </Text>
+
+                  {/* Category Description */}
+                  {category.description && (
+                    <Text
+                      fontSize={{ base: "md", md: "lg" }}
+                      fontWeight="medium"
+                      color="gray.500"
+                      textAlign="center" // Centers the description text
+                      px={4} // Adds horizontal padding for better readability
+                    >
+                      {category.description}
+                    </Text>
+                  )}
                 </Flex>
 
                 {/* Grid responsivo de elementos del menú */}
@@ -139,7 +157,9 @@ const MainPage = () => {
                       .map((item) => (
                         <FoodCard
                           key={item.id}
-                          imageUrl={item.image_url}
+                          imageUrl={
+                            item.image_url || "https://i.imgur.com/j5YpWgZ.png"
+                          }
                           category={item.name}
                           description={item.description}
                           price={item.price}

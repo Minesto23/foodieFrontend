@@ -85,6 +85,7 @@ const MenuBar = ({
   const handleModalClose = () => {
     setIsCategoryModalOpen(false);
     setEditingCategory(null);
+    fetchCategories(selectedRestaurant.id);
   };
 
   /**
@@ -105,6 +106,13 @@ const MenuBar = ({
   const handleCategoryDelete = async (categoryId) => {
     await removeCategory(categoryId);
   };
+
+  /**
+   * Filtrar categorías para mostrar solo las del restaurante seleccionado.
+   */
+  const filteredCategories = categories.filter(
+    (category) => category.restaurant === selectedRestaurant?.id
+  );
 
   /**
    * Botón para agregar nuevas categorías (sólo disponible si no es modo cliente).
@@ -137,7 +145,7 @@ const MenuBar = ({
         />
 
         {/* Botones dinámicos de categorías */}
-        {categories.map((category) => (
+        {filteredCategories.map((category) => (
           <CategoryButton
             key={category.id}
             icon={iconMapping[category.icon_name]}

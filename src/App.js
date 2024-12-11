@@ -4,12 +4,14 @@ import { ChakraProvider } from "@chakra-ui/react";
 import LoginPage from "./Pages/Auth/LoginPage";
 import RegisterPage from "./Pages/Auth/RegisterPage";
 import Dashboard from "./Pages/Home/Dashboard";
+import Privacy from "./Pages/Home/Politic";
 import Header from "./components/Header"; // Encabezado principal
 import Footer from "./components/Footer"; // Pie de página
 import Clients from "./Pages/Home/Clients"; // Página de clientes
 import { Toaster } from "react-hot-toast"; // Notificaciones globales
 import { RestaurantProvider } from "./context/RestaurantContext"; // Contexto global de restaurantes
 import { CategoryProvider } from "./context/CategoryContext"; // Contexto global de categorías
+import Term from "./Pages/Home/TermService";
 
 /**
  * Componente principal que define la estructura de la aplicación.
@@ -55,6 +57,8 @@ const App = () => {
 
               {/* Ruta para la vista de clientes con ID de restaurante */}
               <Route path="/restaurant/:id" element={<Clients />} />
+              <Route path="/privacy" element={<Privacy />} />
+              <Route path="/terms" element={<Term />} />
             </Routes>
 
             {/* Pie de página */}
