@@ -100,6 +100,7 @@ const RestaurantModal = ({ isOpen, onClose, initialData = null }) => {
     { value: "acepta_btc", label: "Acepta BTC" },
     { value: "acepta_efectivo", label: "Acepta Efectivo" },
     { value: "acepta_pago_movil", label: "Acepta Pago Móvil" },
+    { value: "acepta_paypal", label: "Acepta Paypal" },
     { value: "parking", label: "Parking" },
     { value: "ac", label: "A/C" },
     { value: "wifi", label: "WIFI" },
